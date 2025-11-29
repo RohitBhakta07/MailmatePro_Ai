@@ -1140,7 +1140,7 @@
         
         try {
           // Google ki jagah ab Local Server ko call karein
-          const response = await fetch('http://localhost:3000/ask-ai', {
+          const response = await fetch('https://mailmatepro-ai.onrender.com/ask-ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -1450,4 +1450,5 @@
       root.render(<App />);
     </script>
   </body>
+
 </html>
