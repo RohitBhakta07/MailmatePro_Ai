@@ -29,38 +29,6 @@
 
 <br />
 
-<h2 id="-demo-gallery">📸 Demo Gallery</h2>
-
-<p align="center">Experience the <strong>Glassmorphism UI</strong> in both Dark and Light modes.</p>
-
-<table align="center">
-  <tr>
-    <td align="center" width="50%">
-      <strong>🌌 Dark Mode (The Workspace)</strong>
-      <br /><br />
-      <img src="C:\Users\ASUS\OneDrive\Pictures\Screenshots 1" alt="Dark Mode" width="100%" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);" />
-    </td>
-    <td align="center" width="50%">
-      <strong>☀️ Light Mode (Clean UI)</strong>
-      <br /><br />
-      <img src="./assets/screenshots/hero-light.png" alt="Light Mode" width="100%" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <strong>✨ AI Tools (Translator & Humanizer)</strong>
-      <br /><br />
-      <img src="./assets/screenshots/feature-1.png" alt="Features" width="100%" style="border-radius: 10px;" />
-    </td>
-    <td align="center">
-      <strong>📱 Fully Responsive Mobile View</strong>
-      <br /><br />
-      <img src="./assets/screenshots/mobile-view.png" alt="Mobile View" width="100%" style="border-radius: 10px;" />
-    </td>
-  </tr>
-</table>
-
----
 
 ## 🚀 Overview
 
