@@ -38,7 +38,7 @@
     <td align="center" width="50%">
       <strong>🌌 Dark Mode (The Workspace)</strong>
       <br /><br />
-      <img src="./assets/screenshots/hero-dark.png" alt="Dark Mode" width="100%" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);" />
+      <img src="C:\Users\ASUS\OneDrive\Pictures\Screenshots 1" alt="Dark Mode" width="100%" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);" />
     </td>
     <td align="center" width="50%">
       <strong>☀️ Light Mode (Clean UI)</strong>
