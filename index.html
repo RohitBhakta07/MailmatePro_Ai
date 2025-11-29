@@ -1,1454 +1,1109 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
   <head>
-
+    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>MailMate Pro - AI Workspace</title>
-
-   
-
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-
       window.tailwind = window.tailwind || {};
-
       window.tailwind.config = window.tailwind.config || {};
-
       window.tailwind.config.darkMode = 'class';
-
       window.tailwind.config.theme = {
-
         extend: {
-
-          fontFamily: {
-
-            sans: ['Inter', 'sans-serif'],
-
-            heading: ['Outfit', 'sans-serif'],
-
-          },
-
+          fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Outfit', 'sans-serif'] },
           colors: {
-
-            brand: {
-
-              50: '#f0f9ff', //indigo 50
-
-              100: '#e0e7ff',//indigo 100
-
-              500: '#6366f1',//indigo 500
-
-              600: '#4f46e5',//indigo 600
-
-              700: '#4338ca',//indigo 700
-
-              900: '#312e81',//indigo 900
-
-            }
-
+            brand: { 50: '#f0f9ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
           },
-
-          animation: {
-
-            blob: "blob 10s infinite",
-
-            'spin-slow': 'spin 3s linear infinite',
-
-          },
-
+          animation: { blob: "blob 10s infinite", 'spin-slow': 'spin 3s linear infinite', pop: "pop 0.3s ease-out forwards" },
           keyframes: {
-
-            blob: {
-
-              "0%": { transform: "translate(0px, 0px) scale(1)" },
-
-              "33%": { transform: "translate(30px, -50px) scale(1.1)" },
-
-              "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
-
-              "100%": { transform: "translate(0px, 0px) scale(1)" },
-
-            }
-
-          },
-
-        }
-
-      }
-
-    </script>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-
-   
-
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-   
-
-    <script>
-
-      // Prevent Flash of Wrong Theme
-
-      (function() {
-
-        try {
-
-          const saved = localStorage.getItem('mailmate-theme');
-
-          const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-          if (saved === '"dark"' || (!saved && sysDark)) {
-
-            document.documentElement.classList.add('dark');
-
-          } else {
-
-            document.documentElement.classList.remove('dark');
-
+            blob: { "0%": { transform: "translate(0px, 0px) scale(1)" }, "33%": { transform: "translate(30px, -50px) scale(1.1)" }, "66%": { transform: "translate(-20px, 20px) scale(0.9)" }, "100%": { transform: "translate(0px, 0px) scale(1)" } },
+            pop: { "0%": { opacity: 0, transform: "translateY(20px) scale(0.9)" }, "100%": { opacity: 1, transform: "translateY(0) scale(1)" } }
           }
-
-        } catch (e) {}
-
-      })();
-
+        }
+      }
     </script>
-
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script>
+      (function() {
+        try {
+          const saved = localStorage.getItem('mailmate-theme');
+          const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === '"dark"' || (!saved && sysDark)) document.documentElement.classList.add('dark');
+          else document.documentElement.classList.remove('dark');
+        } catch (e) {}
+      })();
+    </script>
 
     <style>
-
       body {
-
         transition: background-color 0.3s ease, color 0.3s ease;
+     }
 
+      .glass { 
+        background: #f6f3f7fa; 
+        border-right: 1px solid #c6eaed; 
       }
 
-     
-
-      /* --- PROFESSIONAL THEME STYLES --- */
-
-     
-
-      /* LIGHT MODE: Solid, Clean, High Contrast */
-
-      .glass {
-
-        background: #f6f3f7fa;
-
-        border-right: 1px solid #c6eaed;
-
+      .glass-card { 
+        background: #f3f3f4d9; 
+        border: 1px solid #edddf6dc; 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
       }
 
-      .glass-card {
-
-        background: #f3f3f4d9;
-
-        border: 1px solid #edddf6dc;
-
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-
+      .dark .glass { 
+        background: rgba(15, 23, 42, 0.7); 
+        border-right: 1px solid rgba(255, 255, 255, 0.08); 
+        backdrop-filter: blur(20px); 
       }
 
-
-
-      /* DARK MODE: Translucent, Glowing, Deep */
-
-      .dark .glass {
-
-        background: rgba(15, 23, 42, 0.7);
-
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
-
-        backdrop-filter: blur(20px);
-
+      .dark .glass-card { 
+        background: rgba(30, 41, 59, 0.4); 
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5); 
+        border: 1px solid rgba(255, 255, 255, 0.08); 
+        backdrop-filter: blur(16px); 
       }
 
-      .dark .glass-card {
-
-        background: rgba(30, 41, 59, 0.4);
-
-        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-
-        border: 1px solid rgba(255, 255, 255, 0.08);
-
-        backdrop-filter: blur(16px);
-
+      @keyframes slideUpFade { 
+        from { opacity: 0; transform: translateY(20px); } 
+        to { opacity: 1; transform: translateY(0); } 
       }
 
-
-
-      /* --- ANIMATIONS --- */
-
-      @keyframes slideUpFade {
-
-        from { opacity: 0; transform: translateY(20px); }
-
-        to { opacity: 1; transform: translateY(0); }
-
+      .animate-slide-up { 
+        animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
       }
-
-      .animate-slide-up { animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-     
 
       @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
       .animate-cursor { animation: blink 1s step-end infinite; }
+ /* Splash */
 
-
-
-      /* --- SPLASH SCREEN --- */
-
-      .splash-screen {
-
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #4c1d95 100%);
-
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-
-        z-index: 9999; transition: opacity 0.8s ease, visibility 0.8s ease;
-
+      .splash-screen { 
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #4c1d95 100%); 
+        display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        z-index: 9999; transition: opacity 0.8s ease, visibility 0.8s ease; 
       }
 
       .splash-title {
-
         font-family: 'Outfit', sans-serif;
-
         font-size: 3.5rem; font-weight: 700; letter-spacing: -0.02em;
-
         background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
-
         -webkit-background-clip: text; background-clip: text; color: transparent;
-
         animation: zoomFade 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-
         margin-bottom: 1.5rem;
-
       }
 
       .splash-logo {
-
         color: #6366f1;
-
         opacity: 0;
-
         animation: lensEffect 1.5s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-
         filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
-
       }
 
       .splash-screen.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
 
-     
-
       @keyframes zoomFade {
-
         0% { opacity: 0; transform: scale(0.8); }
-
         100% { opacity: 1; transform: scale(1); }
-
       }
 
       @keyframes lensEffect {
-
         0% { opacity: 0; transform: scale(0.5); filter: blur(10px); }
-
         60% { opacity: 1; transform: scale(1.2); filter: blur(0px); }
-
         100% { opacity: 1; transform: scale(1); filter: blur(0); }
-
       }
-
-
-
-      /* Custom Scrollbar */
-
+      /* Scrollbar */
       ::-webkit-scrollbar { width: 6px; }
-
       ::-webkit-scrollbar-track { background: transparent; }
-
       ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
       .dark ::-webkit-scrollbar-thumb { background: #475569; }
-
+           
     </style>
-
   </head>
 
- 
-
   <body class="font-sans bg-[#f8fafc] dark:bg-[#050810] text-slate-900 dark:text-slate-200 overflow-hidden transition-colors duration-300">
-
-   
-
+    
     <div id="splash-screen" class="splash-screen">
-
       <h1 class="splash-title">MailMate</h1>
-
       <div class="splash-logo">
-
         <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-
-          <rect width="20" height="16" x="2" y="4" rx="2" />
-
-          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-
+          <rect width="20" height="16" x="2" y="4" rx="2"/>
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
         </svg>
-
       </div>
-
     </div>
-
-   
-
+    
     <div id="root"></div>
 
-
-
     <script type="text/babel">
-
       const { useState, useEffect, useCallback, useRef } = React;
 
-
-
       // --- ICONS ---
-
       const ICONS = {
-
         Mail: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>,
-
         Translate: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 6-6m-6 6 6 6"/><path d="m14 4 6 6m-6-6 6 6"/><path d="M19 10h-5a2 2 0 0 0-2 2v5"/><path d="M14 20v-5a2 2 0 0 0-2-2H4"/></svg>,
-
         Sparkles: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9a6 6 0 0 0-9-9Z"/><path d="M6 3v4"/><path d="M3 6h4"/><path d="M18 17v4"/><path d="M21 20h-4"/><path d="m3 21 1.6-1.6"/><path d="m21 3-1.6 1.6"/></svg>,
-
         Menu: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
-
         X: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
-
         Check: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-
         Copy: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>,
-
         Loader: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
-
         ChevronRight: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
-
         Sun: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
-
         Moon: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9a6 6 0 0 0-9-9Z"/></svg>,
-
         Trash: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
         More: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>,
-        Edit: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-
+        Edit: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>,
+        Mic: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>,
+        Download: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>,
+        Users: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+        Plus: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+        Minus: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>,
+        ChevronDown: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
       };
-        // --- CONSTANTS ---
-      const LANGUAGES = [
 
+      const LANGUAGES = [
         { code: 'auto', name: 'Auto Detect' }, { code: 'en', name: 'English' }, { code: 'hi', name: 'Hindi' }, { code: 'bn', name: 'Bengali' },
         { code: 'es', name: 'Spanish' }, { code: 'fr', name: 'French' }, { code: 'de', name: 'German' }, { code: 'zh', name: 'Chinese' },
         { code: 'ja', name: 'Japanese' }, { code: 'ar', name: 'Arabic' }, { code: 'pt', name: 'Portuguese' }, { code: 'ru', name: 'Russian' },
-
       ];
+      // --- SOUNDS LIBRARY ---
+      const SOUNDS = {
+        copy: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3", // Click Sound
+        delete: "https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3", // Trash Sound
+        download: "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3", // Success Chime
+        micOn: "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3", // Blip High
+        micOff: "https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"  // Blip Low
+      };
 
-
+      // Sound Play karne wala Helper
+      const playSound = (type) => {
+        try {
+          const audio = new Audio(SOUNDS[type]);
+          audio.volume = 0.5; // Aawaz thodi dheemi (50%)
+          audio.play();
+        } catch (e) {
+          console.log("Sound error:", e);
+        }
+      };
 
       // --- UTILS ---
-
       function formatTimeAgo(isoString) {
-
         const seconds = Math.floor((new Date() - new Date(isoString)) / 1000);
-
         if (seconds > 31536000) return Math.floor(seconds/31536000) + "y";
-
         if (seconds > 86400) return Math.floor(seconds/86400) + "d";
-
         if (seconds > 3600) return Math.floor(seconds/3600) + "h";
-
         if (seconds > 60) return Math.floor(seconds/60) + "m";
-
         return "now";
-
       }
 
       function useLocalStorage(key, initialValue) {
-
         const [storedValue, setStoredValue] = useState(() => {
-
           try { return JSON.parse(window.localStorage.getItem(key)) || initialValue; } catch { return initialValue; }
-
         });
-
         const setValue = (value) => {
-
           try { const v = value instanceof Function ? value(storedValue) : value; setStoredValue(v); window.localStorage.setItem(key, JSON.stringify(v)); } catch {}
-
         };
-
         return [storedValue, setValue];
-
       }
 
-      function useCopyToClipboard() {
-
+      // --- TOAST NOTIFICATION COMPONENT ---
+       function useCopyToClipboard() {
         const [isCopied, setIsCopied] = useState(false);
-
         const copy = useCallback((text) => {
-
           if (!text) return;
-
           navigator.clipboard.writeText(text).then(() => { setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); });
-
         }, []);
-
         return [isCopied, copy];
-
       }
 
-
-
-      // ==========================================
-
-      // UI COMPONENTS
-
-      // ==========================================
-
-
-
-      const ThemeToggle = ({ theme, toggleTheme }) => (
-
-        <button
-
-          onClick={toggleTheme}
-
-          className="p-2.5 rounded-full glass text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-700 transition-all shadow-sm active:scale-90"
-
-          title="Toggle Theme"
-
-        >
-
-          {theme === 'light' ? <ICONS.Moon className="w-5 h-5" /> : <ICONS.Sun className="w-5 h-5" />}
-
-        </button>
-
+      const Toast = ({ message, onClose }) => (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-pop">
+          <ICONS.Check className="w-5 h-5 text-green-400 dark:text-green-600" />
+          <span className="font-bold text-sm">{message}</span>
+        </div>
       );
 
-
+      // --- UI COMPONENTS ---
+      const ThemeToggle = ({ theme, toggleTheme }) => (
+        <button 
+          onClick={toggleTheme} className="p-2.5 rounded-full glass text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-700 transition-all shadow-sm active:scale-90" 
+          title="Toggle Theme"
+        >
+          {theme === 'light' ? <ICONS.Moon className="w-5 h-5" /> : <ICONS.Sun className="w-5 h-5" />}
+        </button>
+      );
 
       const FeatureTicker = () => {
-
         const features = [
-
-          "✨ Use AI to write professional emails instantly",
-
-          " Translate text between 12+ languages",
-
-          "🤖 Humanize robotic text to sound natural",
-
-          " Generate smart replies for your inbox",
-
-          "✏️ Polish and refine your rough drafts"
-
-        ];
-
+          "✨ Write professional emails instantly", 
+          " Translate text to 12+ languages", 
+          "🤖 Humanize robotic text", 
+          " Generate smart replies", 
+          "✏️ Polish your rough drafts"];
         const [currentText, setCurrentText] = useState('');
-
         const [index, setIndex] = useState(0);
-
-
-
+        
         useEffect(() => {
-
           const fullText = features[index];
-
           if (currentText.length < fullText.length) {
-
             const timeout = setTimeout(() => setCurrentText(fullText.slice(0, currentText.length + 1)), 40);
-
             return () => clearTimeout(timeout);
-
           } else {
-
-            const timeout = setTimeout(() => {
-
-              setIndex((prevIndex) => (prevIndex + 1) % features.length);
-
-              setCurrentText('');
-
-            }, 5000);
-
+            const timeout = setTimeout(() => { 
+              setIndex((prevIndex) => (prevIndex + 1) % features.length); 
+              setCurrentText(''); 
+            }, 3000);
             return () => clearTimeout(timeout);
-
           }
-
         }, [currentText, index]);
 
-
-
         return (
-
           <div className="flex justify-center items-center h-16 mb-6 w-full overflow-hidden px-4">
-
-            <p className="text-center text-xl md:text-2xl font-bold font-heading bg-gradient-to-r from-sky-600 to-purple-600 dark:from-sky-300 dark:to-purple-300 bg-clip-text text-transparent tracking-tight drop-shadow-sm">
-                {/* Cursor ka color bhi match karne ke liye change kiya hai */}
+            <p className="text-center text-xl md:text-2xl font-bold font-heading bg-gradient-to-r from-sky-600 to-purple-600 dark:from-sky-300 dark:to-purple-300 bg-clip-text text-transparent tracking-tight">
              {currentText}<span className="animate-cursor inline-block w-0.5 h-6 md:h-8 ml-1 bg-sky-500 align-middle"></span>
             </p>
-
           </div>
-
         );
-
       };
 
-
-
       const ToolButton = ({ onClick, disabled, text, loadingText, isLoading }) => (
-
-        <button
-
-          onClick={onClick}
-
-          disabled={disabled || isLoading}
-
-          className="group relative w-full flex items-center justify-center gap-3 py-4 px-8 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 hover:from-brand-500 hover:to-brand-300 shadow-[0_10px_40px_-10px_rgba(99,102,241,0.5)] hover:shadow-[0_15px_50px_-10px_rgba(99,102,241,0.7)] focus:ring-4 focus:ring-brand-500/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 overflow-hidden"
-
-        >
-
+        <button 
+          onClick={onClick} 
+          disabled={disabled || isLoading} 
+          className="group relative w-full flex items-center justify-center gap-3 py-4 px-8 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 hover:from-brand-500 hover:to-brand-300 shadow-[0_10px_40px_-10px_rgba(99,102,241,0.5)] hover:shadow-[0_15px_50px_-10px_rgba(99,102,241,0.7)] focus:ring-4 focus:ring-brand-500/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 overflow-hidden">
           {isLoading ? (
-
-             <React.Fragment><ICONS.Loader className="w-6 h-6" /><span>{loadingText}...</span></React.Fragment>
-
+            <React.Fragment><ICONS.Loader className="w-6 h-6" /><span>{loadingText}...</span></React.Fragment>
           ) : (
-
             <React.Fragment>
-
               <span className="relative z-10 tracking-wide">{text}</span>
-
               <ICONS.Sparkles className="w-5 h-5 relative z-10 opacity-90 group-hover:rotate-12 transition-transform" />
-
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-
-            </React.Fragment>
-
-          )}
-
+              </React.Fragment>)}
         </button>
-
       );
 
+// --- UPDATED OUTPUT AREA WITH GROUP SEND ---
+      const OutputArea = ({ text, onChange, onCopy, iscopied, placeholder, isLoading, onDownloadPDF }) => {
+        // Typewriter Effect Logic
+        const [displayedText, setDisplayedText] = useState('');
+        
+        // Group Dropdown State
+        const [showGroupMenu, setShowGroupMenu] = useState(false);
+        
+        // LocalStorage se groups fetch karna (Real-time access ke liye)
+        const getGroups = () => {
+           try {
+             return JSON.parse(window.localStorage.getItem('mailmate-groups') || '[]');
+           } catch { return []; }
+        };
 
+        const handleSendToGroup = (group) => {
+           if(!text) return;
+           
+           // Emails ko BCC (Blind Carbon Copy) mein daalna privacy ke liye
+           const recipientString = group.emails.join(',');
+           
+           // Body text ko encode karna taaki wo email body mein aa jaye
+           const body = encodeURIComponent(text);
+           const subject = encodeURIComponent("Draft from MailMate"); // Optional Subject
+           
+           // Mailto link open karna
+           window.open(`mailto:?bcc=${recipientString}&subject=${subject}&body=${body}`, '_blank');
+           
+           playSound('download'); // Success Sound
+           setShowGroupMenu(false); // Menu band karna
+        };
 
-      // *** SKELETON LOADING & OUTPUT AREA ***
-
-      const OutputArea = ({ text, onChange, onCopy, isCopied, placeholder, isLoading }) => (
-
-        <div className="relative w-full h-full min-h-[264px] rounded-2xl overflow-hidden transition-all duration-300 bg-slate-50 border border-slate-200 dark:bg-slate-900/30 dark:border-slate-700">
-
-          {isLoading ? (
-
-            // SKELETON STATE
-
-            <div className="absolute inset-0 p-6 flex flex-col gap-4 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md z-20">
-
-              <div className="flex items-center gap-3 animate-pulse">
-
-                <div className="w-8 h-8 rounded-full bg-brand-200 dark:bg-brand-900/50"></div>
-
-                <div className="h-4 w-1/3 bg-gray-200 dark:bg-slate-700 rounded"></div>
-
-              </div>
-
-              <div className="space-y-3 animate-pulse mt-4">
-
-                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-full"></div>
-
-                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-11/12"></div>
-
-                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-4/5"></div>
-
-                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-full"></div>
-
-              </div>
-
-              <div className="mt-auto flex justify-center">
-
-                <span className="text-xs font-bold text-brand-600 dark:text-brand-300 animate-pulse uppercase tracking-widest">
-
-                  AI IS WRITING...
-
-                </span>
-
-              </div>
-
-            </div>
-
-          ) : (
-
-            // RESULT STATE
-
-            <React.Fragment>
-
-
-                <textarea
-
-                  value={text || ''} 
-                  onChange={(e) => onChange(e.target.value)}
-                   placeholder={placeholder}
-
-                   // 👇 yahan change hua hai (rows="15" add kiya aur padding kam ki) 👇
-
-                  rows="9" 
-                 className="w-full h-full p-4 pt-10 bg-transparent border-none resize-none text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-0 text-base leading-relaxed font-medium"
-
-               />
-
-              <button onClick={() => onCopy(text)} className={`absolute top-4 right-4 p-2 rounded-lg backdrop-blur-md border border-gray-200 dark:border-gray-700 transition-all z-20 ${isCopied ? 'bg-green-50 text-green-600 border-green-200' : 'bg-white shadow-sm dark:bg-slate-800/60 hover:bg-slate-100 text-slate-500'}`}>
-
-                {isCopied ? <ICONS.Check className="w-4 h-4" /> : <ICONS.Copy className="w-4 h-4" />}
-
-              </button>
-
-            </React.Fragment>
-
-          )}
-
-        </div>
-
-      );
-
-
-
-      const LabeledSelect = ({ label, value, onChange, children }) => (
-
-        <div className="flex flex-col">
-
-          <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-2 tracking-wider">{label}</label>
-
-          <select value={value} onChange={onChange} className="py-2.5 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors font-medium">
-
-            {children}
-
-          </select>
-
-        </div>
-
-      );
-
-
-
-      const HistoryItem = ({ item, onClick, onDelete, onRename }) => {
-
-        let badgeColor, badgeText;
-
-        switch(item.tool) {
-
-          case 'compose': badgeColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'; badgeText = 'Polish'; break;
-
-          case 'translate': badgeColor = 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'; badgeText = 'Translate'; break;
-
-          case 'humanize': badgeColor = 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'; badgeText = 'Humanize'; break;
-
-          default: badgeColor = 'bg-gray-100 text-gray-800'; badgeText = 'N/A';
-
-        }
+        useEffect(() => {
+          if (!text) { setDisplayedText(''); return; }
+          if (!isLoading && text !== displayedText) {
+             let i = 0;
+             setDisplayedText(''); 
+             const interval = setInterval(() => {
+               setDisplayedText(text.substring(0, i));
+               i++;
+               if (i > text.length) clearInterval(interval);
+             }, 5); 
+             return () => clearInterval(interval);
+          }
+        }, [text, isLoading]);
 
         return (
+        <div className="relative w-full h-full min-h-[264px] rounded-2xl overflow-hidden transition-all duration-300 bg-slate-50 border border-slate-200 dark:bg-slate-900/30 dark:border-slate-700 group">
+          {isLoading ? (
+            <div className="absolute inset-0 p-6 flex flex-col gap-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md z-20">
+              <div className="flex items-center gap-3 animate-pulse"><div className="w-8 h-8 rounded-full bg-brand-200 dark:bg-brand-900/50"></div><div className="h-4 w-1/3 bg-gray-200 dark:bg-slate-700 rounded"></div></div>
+              <div className="space-y-3 animate-pulse mt-4"><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-full"></div><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-11/12"></div><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-4/5"></div></div>
+              <div className="mt-auto flex justify-center"><span className="text-xs font-bold text-brand-600 dark:text-brand-300 animate-pulse uppercase tracking-widest">AI IS WRITING...</span></div>
+            </div>
+          ) : (
+            <React.Fragment>
+              <textarea 
+                value={displayedText || text || ''} 
+                onChange={(e) => { setDisplayedText(e.target.value); onChange(e.target.value); }} 
+                placeholder="Result..."
+                rows="9" 
+                className="w-full h-full p-4 pt-10 bg-transparent border-none resize-none text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-0 text-base leading-relaxed font-medium" 
+              />
+              
+              <div className="absolute top-3 right-3 flex gap-2 z-20">
+                 
+                 {/* GROUP SEND BUTTON & DROPDOWN */}
+                 <div className="relative">
+                    <button 
+                      onClick={() => setShowGroupMenu(!showGroupMenu)} 
+                      className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" 
+                      title="Send to Group"
+                    >
+                      <ICONS.Users className="w-4 h-4" />
+                    </button>
+                    
+                    {/* DROPDOWN MENU */}
+                    {showGroupMenu && (
+                      <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-pop">
+                        <div className="p-2 border-b border-slate-100 dark:border-slate-700 text-[10px] font-bold uppercase text-slate-400">Select Group</div>
+                        <div className="max-h-40 overflow-y-auto">
+                           {getGroups().length === 0 ? (
+                             <div className="p-3 text-xs text-center text-slate-500">No groups found</div>
+                           ) : (
+                             getGroups().map(g => (
+                               <button 
+                                 key={g.id} 
+                                 onClick={() => handleSendToGroup(g)}
+                                 className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:text-brand-600 transition-colors flex justify-between items-center"
+                               >
+                                 <span>{g.name}</span>
+                                 <span className="text-[10px] opacity-60 bg-slate-200 dark:bg-slate-700 px-1 rounded">{g.count}</span>
+                               </button>
+                             ))
+                           )}
+                        </div>
+                      </div>
+                    )}
+                    {/* Backdrop to close menu */}
+                    {showGroupMenu && <div className="fixed inset-0 z-40" onClick={() => setShowGroupMenu(false)}></div>}
+                 </div>
 
+                 {/* Single Mail Button */}
+                 <button onClick={() => window.open(`mailto:?body=${encodeURIComponent(text)}`)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Open in Mail App"><ICONS.Mail className="w-4 h-4" /></button>
+                 
+                 {/* PDF Button */}
+                 <button onClick={() => onDownloadPDF(text)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Download PDF"><ICONS.Download className="w-4 h-4" /></button>
+                 
+                 {/* Copy Button */}
+                 <button onClick={() => onCopy(text)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Copy Text"><ICONS.Copy className="w-4 h-4" /></button>
+              </div>
+            </React.Fragment>
+          )}
+        </div>
+      );
+      }
+
+      const LabeledSelect = ({ label, value, onChange, children }) => (
+        <div className="flex flex-col">
+          <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-2 tracking-wider">{label}</label>
+          <select value={value} onChange={onChange} className="py-2.5 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors font-medium">
+            {children}
+          </select>
+        </div>
+      );
+
+      const HistoryItem = ({ item, onClick, onDelete, onRename }) => {
+        let badgeColor, badgeText;
+        switch(item.tool) {
+          case 'compose': badgeColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'; badgeText = 'Polish'; break;
+          case 'translate': badgeColor = 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'; badgeText = 'Translate'; break;
+          case 'humanize': badgeColor = 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'; badgeText = 'Humanize'; break;
+          default: badgeColor = 'bg-gray-100 text-gray-800'; badgeText = 'N/A';
+        }
+        return (
           <div className="group relative w-full p-3 rounded-xl bg-slate-50 hover:bg-white dark:bg-white/5 dark:hover:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all text-left mb-2 cursor-pointer" onClick={() => onClick(item)}>
-
             <div className="flex justify-between items-center mb-1.5">
-
               <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md ${badgeColor}`}>{badgeText}</span>
-
-             
-
-              {/* Three Dots / Actions */}
-
+             {/*three dots menu on hover*/} 
               <div className="flex items-center gap-1">
-
                 <span className="text-[10px] text-slate-400 group-hover:hidden">{formatTimeAgo(item.timestamp)}</span>
-
                 <div className="hidden group-hover:flex items-center gap-1 bg-white dark:bg-slate-800 p-0.5 rounded-md shadow-sm border border-gray-100 dark:border-gray-700 absolute right-2 top-2 z-10">
-
+                 
                   <button onClick={(e) => { e.stopPropagation(); onRename(item); }} className="p-1.5 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded" title="Rename">
-
-                     <ICONS.Edit className="w-3.5 h-3.5" />
-
+                    <ICONS.Edit className="w-3.5 h-3.5" />
                   </button>
 
                   <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} className="p-1.5 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded" title="Delete">
-
-                     <ICONS.Trash className="w-3.5 h-3.5" />
-
+                    <ICONS.Trash className="wa-3.5 h-3.5" />
                   </button>
 
                 </div>
-
                 <div className="group-hover:hidden text-slate-400"><ICONS.More className="w-4 h-4" /></div>
-
               </div>
-
             </div>
-
             <p className="text-xs text-slate-700 dark:text-slate-300 truncate font-medium opacity-90 group-hover:opacity-100 pr-4">{item.label || item.original}</p>
-
           </div>
-
         );
-
       };
 
+      // --- FIXED VOICE INPUT COMPONENT ---
+      const VoiceInput = ({ onInput }) => {
+        const [isListening, setIsListening] = useState(false);
 
+        const startListening = () => {
+          // 1. Browser Support Check (Standard + Webkit)
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-      // ==========================================
-
-      // TOOLS
-
-      // ==========================================
-
-     
-
-      const ToolComposer = ({ handleQuickExample, composeInput, setComposeInput, isSmartCompose, setIsSmartCompose, composeTone, setComposeTone, composeOutput, setComposeOutput, copyCompose, isComposeCopied, handleCompose, isLoading }) => {
-
-        const showOutput = (!!composeOutput && composeOutput !== '') || isLoading;
-
-        const outputRef = useRef(null);
-
-        useEffect(() => {
-
-          if (showOutput && outputRef.current) {
-
-             if(window.innerWidth < 1024) outputRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
+          if (!SpeechRecognition) {
+            alert("Voice input is not supported in this browser. Please use Google Chrome or Safari.");
+            return;
           }
 
-        }, [showOutput]);
-
-
-
-        return (
-
-          <div className="space-y-8 transition-all duration-500">
-
-            <div className="p-6 rounded-2xl glass-card">
-
-               <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Quick Examples</h3>
-
-                <div className="flex flex-wrap gap-2">
-
-                  {["leave request for tomorrow", "follow up on payment", "meeting reschedule next week"].map(ex => (
-
-                    <button key={ex} onClick={() => handleQuickExample(ex)} className="px-3 py-1.5 text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100 rounded-full hover:bg-brand-100 hover:border-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:border-brand-800 dark:hover:bg-brand-900/50 transition-colors">{ex}</button>
-
-                  ))}
-
-                </div>
-
-            </div>
-
-           
-
-            <div className={`grid gap-8 transition-all duration-500 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
-
-              <div className="space-y-6">
-
-                <div className="p-6 rounded-2xl glass-card space-y-4">
-
-                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">Write Draft</h3>
-
-                    <div className="flex items-center gap-4">
-
-                      <div className="flex items-center">
-
-                        <input type="checkbox" id="smart-compose" checked={isSmartCompose} onChange={(e) => setIsSmartCompose(e.target.checked)} className="w-4 h-4 text-brand-600 rounded border-gray-300 focus:ring-brand-500" />
-
-                        <label htmlFor="smart-compose" className="ml-2 text-xs font-bold uppercase tracking-wider text-slate-500 cursor-pointer">Smart</label>
-
-                      </div>
-
-                      <select value={composeTone} onChange={(e) => setComposeTone(e.target.value)} className="py-1 px-2 text-xs font-medium rounded-lg bg-slate-100 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:outline-none text-slate-700 dark:text-slate-300">
-
-                        <option>Formal</option><option>Friendly</option><option>Persuasive</option>
-
-                      </select>
-
-                    </div>
-
-                  </div>
-
-                  <textarea value={composeInput} onChange={(e) => setComposeInput(e.target.value)} placeholder="Type a topic or rough email here..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all text-base text-slate-800 dark:text-slate-200 placeholder-slate-400" style={{ minHeight: '264px' }} />
-
-                </div>
-
-                <ToolButton onClick={handleCompose} disabled={!composeInput} text={isSmartCompose && composeInput.length < 20 ? "Polish Email" : "Create My Email"} loadingText="Generating" isLoading={isLoading} />
-
-              </div>
-
-             
-
-              {showOutput && (
-
-                <div ref={outputRef} className="animate-slide-up h-fit">
-
-                  <div className="glass-card p-1 rounded-2xl">
-
-                      <div className="bg-slate-50/80 dark:bg-slate-800/40 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-gray-200/50 dark:border-gray-700/50">
-
-                        <ICONS.Sparkles className="w-4 h-4 text-brand-500" />
-
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Polished Result</span>
-
-                      </div>
-
-                      <OutputArea text={composeOutput} onChange={setComposeOutput} onCopy={copyCompose} isCopied={isComposeCopied} placeholder="Result..." isLoading={isLoading} />
-
-                  </div>
-
-                </div>
-
-              )}
-
-            </div>
-
-          </div>
-
-        );
-
-      };
-
-
-
-      const ToolTranslator = ({ translateFromLang, setTranslateFromLang, translateToLang, setTranslateToLang, translateInput, setTranslateInput, translateOutput, setTranslateOutput, copyTranslate, isTranslateCopied, handleTranslate, isLoading }) => {
-
-        const showOutput = (!!translateOutput && translateOutput !== '') || isLoading;
-
-        return (
-
-          <div className="space-y-8">
-
-            <div className="p-6 rounded-2xl glass-card">
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-
-                <LabeledSelect label="From" value={translateFromLang} onChange={(e) => setTranslateFromLang(e.target.value)}>{LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</LabeledSelect>
-
-                <div className="mt-6 text-slate-400"><ICONS.ChevronRight /></div>
-
-                <LabeledSelect label="To" value={translateToLang} onChange={(e) => setTranslateToLang(e.target.value)}>{LANGUAGES.filter(l => l.code !== 'auto').map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</LabeledSelect>
-
-              </div>
-
-            </div>
-
-            <div className={`grid gap-8 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
-
-              <div className="space-y-6">
-
-                <div className="p-6 rounded-2xl glass-card space-y-4">
-
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">Source Text</h3>
-
-                  <textarea value={translateInput} onChange={(e) => setTranslateInput(e.target.value)} placeholder="Enter text..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200" style={{ minHeight: '264px' }} />
-
-                </div>
-
-                <ToolButton onClick={handleTranslate} disabled={!translateInput} text="Translate Text" loadingText="Translating" isLoading={isLoading} />
-
-              </div>
-
-              {showOutput && (
-
-                <div className="animate-slide-up h-fit">
-
-                    <div className="glass-card p-1 rounded-2xl border-purple-200 dark:border-purple-900/30">
-
-                      <div className="bg-purple-50/40 dark:bg-purple-900/20 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-purple-100 dark:border-purple-900/30">
-
-                        <ICONS.Translate className="w-4 h-4 text-purple-500" />
-
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Translation</span>
-
-                      </div>
-
-                      <OutputArea text={translateOutput} onChange={setTranslateOutput} onCopy={copyTranslate} isCopied={isTranslateCopied} placeholder="Translation..." isLoading={isLoading} />
-
-                  </div>
-
-                </div>
-
-              )}
-
-            </div>
-
-          </div>
-
-        );
-
-      };
-
-
-
-      const ToolHumanizer = ({ humanizeTone, setHumanizeTone, humanizeInput, setHumanizeInput, humanizeOutput, setHumanizeOutput, copyHumanize, isHumanizeCopied, handleHumanize, isLoading }) => {
-
-        const showOutput = (!!humanizeOutput && humanizeOutput !== '') || isLoading;
-
-        return (
-
-          <div className="space-y-8">
-
-            <div className="p-6 rounded-2xl glass-card">
-
-              <LabeledSelect label="Select Tone" value={humanizeTone} onChange={(e) => setHumanizeTone(e.target.value)}><option>Professional</option><option>Conversational</option><option>Casual</option></LabeledSelect>
-
-            </div>
-
-            <div className={`grid gap-8 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
-
-              <div className="space-y-6">
-
-                <div className="p-6 rounded-2xl glass-card space-y-4">
-
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">AI Text</h3>
-
-                  <textarea value={humanizeInput} onChange={(e) => setHumanizeInput(e.target.value)} placeholder="Paste robotic text..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200" style={{ minHeight: '264px' }} />
-
-                </div>
-
-                <ToolButton onClick={handleHumanize} disabled={!humanizeInput} text="Humanize Text" loadingText="Humanizing" isLoading={isLoading} />
-
-              </div>
-
-              {showOutput && (
-
-                <div className="animate-slide-up h-fit">
-
-                    <div className="glass-card p-1 rounded-2xl border-green-200 dark:border-green-900/30">
-
-                      <div className="bg-green-50/40 dark:bg-green-900/20 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-green-100 dark:border-green-900/30">
-
-                        <ICONS.Sparkles className="w-4 h-4 text-green-500" />
-
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Humanized Result</span>
-
-                      </div>
-
-                      <OutputArea text={humanizeOutput} onChange={setHumanizeOutput} onCopy={copyHumanize} isCopied={isHumanizeCopied} placeholder="Result..." isLoading={isLoading} />
-
-                  </div>
-
-                </div>
-
-              )}
-
-            </div>
-
-          </div>
-
-        );
-
-      };
-
-
-
-      // ==========================================
-
-      // MAIN APP LOGIC
-
-      // ==========================================
-
-      function App() {
-
-        const [currentTool, setCurrentTool] = useState('compose');
-
-        const [history, setHistory] = useLocalStorage('mailmate-history', []);
-
-        const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-        const [isLoading, setIsLoading] = useState(false);
-
-        const [error, setError] = useState(null);
-
-
-
-        // THEME MANAGEMENT
-
-        const [theme, setTheme] = useState(() => {
-
-          if (typeof window !== 'undefined') return localStorage.getItem('mailmate-theme') || 'light';
-
-          return 'light';
-
-        });
-
-
-
-        useEffect(() => {
-
-          const root = document.documentElement;
-
-          if (theme === 'dark') {
-
-             root.classList.add('dark');
-
-             root.classList.remove('light');
-
-          } else {
-
-             root.classList.remove('dark');
-
-             root.classList.add('light');
-
-          }
-
-          localStorage.setItem('mailmate-theme', theme);
-
-        }, [theme]);
-
-
-
-        const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
-
-
-
-        // REMOVE SPLASH SCREEN
-
-        useEffect(() => {
-
-           const splash = document.getElementById('splash-screen');
-
-           if(splash) { setTimeout(() => { splash.classList.add('fade-out'); setTimeout(()=>splash.style.display='none',600); }, 2200); }
-
-        }, []);
-
-
-
-        // TOOL STATES
-
-        const [composeInput, setComposeInput] = useState('');
-
-        const [composeOutput, setComposeOutput] = useState('');
-
-        const [composeTone, setComposeTone] = useState('Formal');
-
-        const [isSmartCompose, setIsSmartCompose] = useState(true);
-
-
-
-        const [translateInput, setTranslateInput] = useState('');
-
-        const [translateOutput, setTranslateOutput] = useState('');
-
-        const [translateFromLang, setTranslateFromLang] = useState('auto');
-
-        const [translateToLang, setTranslateToLang] = useState('en');
-
-
-
-        const [humanizeInput, setHumanizeInput] = useState('');
-
-        const [humanizeOutput, setHumanizeOutput] = useState('');
-
-        const [humanizeTone, setHumanizeTone] = useState('Professional');
-
-
-
-        const [isComposeCopied, copyCompose] = useCopyToClipboard();
-
-        const [isTranslateCopied, copyTranslate] = useCopyToClipboard();
-
-        const [isHumanizeCopied, copyHumanize] = useCopyToClipboard();
-
-
-
-        const addHistoryItem = (item) => {
-
-          const newHistory = [item, ...history];
-
-          if (newHistory.length > 20) newHistory.pop();
-
-          setHistory(newHistory);
-
-        };
-
-
-
-        const handleHistoryClick = (item) => {
-
-          setCurrentTool(item.tool);
-
-          if (item.tool === 'compose') { setComposeInput(item.original); setComposeOutput(item.result); }
-
-          if (item.tool === 'translate') { setTranslateInput(item.original); setTranslateOutput(item.result); }
-
-          if (item.tool === 'humanize') { setHumanizeInput(item.original); setHumanizeOutput(item.result); }
-
-          setIsMobileMenuOpen(false);
-
-        };
-
-
-
-        const deleteHistoryItem = (id) => {
-
-          setHistory(history.filter(item => item.id !== id));
-
-        };
-
-
-
-        const renameHistoryItem = (item) => {
-
-          const newName = prompt("Rename item:", item.label || item.original);
-
-          if (newName) {
-
-            const updatedHistory = history.map(h => h.id === item.id ? { ...h, label: newName } : h);
-
-            setHistory(updatedHistory);
-
-          }
-
-        };
-
-       // ==========================================
-      // AI API CALL (SECURE - CONNECTED TO LOCALHOST)
-      // ==========================================
-      const callAIApi = async (systemPrompt, userPrompt) => {
-        // Purane errors saaf karna
-        setError(null);
-        
-        try {
-          // Google ki jagah ab Local Server ko call karein
-          const response = await fetch('https://mailmatepro-ai.onrender.com/ask-ai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              system: systemPrompt, 
-              message: userPrompt 
-            })
-          });
-
-          if (!response.ok) {
-             throw new Error("Server Error: " + response.status);
-          }
-
-          const result = await response.json();
-          
-          // Jawab check karna
-          if (result.candidates && result.candidates[0].content) {
-             return result.candidates[0].content.parts[0].text;
-          }
-          
-          throw new Error("AI ne koi jawab nahi diya.");
-        } catch (err) {
-          console.error(err); 
-          // Agar server band hai to error dikhana
-          setError("Server se connect nahi ho pa raha. Kya 'node server.js' chal raha hai?");
-          throw err;
-        }
-      };
-        const handleToolAction = async (tool, input, tone, extra) => {
-
-          setIsLoading(true);
-
-         
-
-          if (tool === 'compose') setComposeOutput('');
-
-          if (tool === 'translate') setTranslateOutput('');
-
-          if (tool === 'humanize') setHumanizeOutput('');
-
-
-
-          let system = "", user = "";
-
-          if (tool === 'compose') {
-
-             system = "You are an AI email assistant. Write a professional email.";
-
-             user = `Topic/Draft: ${input}\nTone: ${tone}`;
-
-          } else if (tool === 'translate') {
-
-             system = "You are an AI translator. Translate text directly.";
-
-             user = `Translate from ${extra.from} to ${extra.to}: "${input}"`;
-
-          } else if (tool === 'humanize') {
-
-             system = "Humanize this text to sound natural.";
-
-             user = `Text: "${input}"\nTone: ${tone}`;
-
-          }
-
-
+          // 2. Play Click Sound (Fix for no sound)
+          playSound('micOn');
+
+          const recognition = new SpeechRecognition();
+          recognition.lang = 'en-US'; // Language
+          recognition.continuous = false; // Mobile friendly: stop after one sentence
+          recognition.interimResults = false;
+
+          recognition.onstart = () => {
+            setIsListening(true);
+          };
+
+          recognition.onend = () => {
+            setIsListening(false);
+          };
+
+          recognition.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            onInput(transcript);
+            playSound('download'); // Success "Ding" sound
+          };
+
+          recognition.onerror = (event) => {
+            console.error("Speech recognition error", event.error);
+            setIsListening(false);
+            playSound('delete'); // Error sound
+            
+            // Mobile Specific Error Handling
+            if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+                alert("Microphone permission blocked! Please allow microphone access in site settings.");
+            } else if (event.error === 'no-speech') {
+                // User ne kuch nahi bola, ignore karein
+            } else {
+                alert("Error: " + event.error);
+            }
+          };
 
           try {
-
-            const result = await callAIApi(system, user);
-
-            if (tool === 'compose') setComposeOutput(result);
-
-            if (tool === 'translate') setTranslateOutput(result);
-
-            if (tool === 'humanize') setHumanizeOutput(result);
-
-            addHistoryItem({ id: Date.now(), tool, original: input, label: input, result, timestamp: new Date().toISOString() });
-
+            recognition.start();
           } catch (e) {
-
-            const errMsg = "Error: Service unavailable or API key limit reached.";
-
-            if (tool === 'compose') setComposeOutput(errMsg);
-
-            if (tool === 'translate') setTranslateOutput(errMsg);
-
-            if (tool === 'humanize') setHumanizeOutput(errMsg);
-
-          } finally {
-
-            setIsLoading(false);
-
+            console.error("Recognition start error:", e);
           }
-
         };
-
-
-
-        const getSidebarClass = (id) => {
-
-           const base = "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 font-bold text-sm mb-1 ";
-
-           if (currentTool === id) {
-
-             if(id === 'compose') return base + "bg-sky-50 text-sky-600 shadow-sm border border-sky-100 dark:bg-sky-900/20 dark:text-white dark:border-sky-800";  //hightlight comose tool
-
-             if(id === 'translate') return base + "bg-purple-50 text-purple-600 shadow-sm border border-purple-100 dark:bg-purple-900/20 dark:text-white dark:border-purple-800";  //hightlight translate tool
-
-             if(id === 'humanize') return base + "bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100 dark:bg-emerald-900/20 dark:text-white dark:border-emerald-800";  //hightlight humanize tool
-
-           }
-
-           return base + "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800/50";
-
-        };
-
-
 
         return (
+          <button 
+            onClick={startListening} 
+            className={`absolute bottom-3 right-3 p-2 rounded-full transition-all ${
+              isListening 
+                ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/50' 
+                : 'bg-slate-100 text-slate-500 hover:bg-brand-50 hover:text-brand-600 dark:bg-slate-800 dark:text-slate-400'
+            }`} 
+            title="Speak"
+          >
+            {isListening ? (
+                // Stop/Recording Icon
+                <div className="w-5 h-5 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-sm animate-bounce"></div>
+                </div>
+            ) : (
+                <ICONS.Mic className="w-5 h-5" />
+            )}
+          </button>
+        );
+      };
+      // --- TOOLS ---
+      const ToolComposer = ({ handleQuickExample, composeInput, setComposeInput, isSmartCompose, setIsSmartCompose, composeTone, setComposeTone, composeLength, setComposeLength, composeOutput, setComposeOutput, handleCopy, handleDownload, handleCompose, isLoading }) => {
+        const outputRef = useRef(null);
+       // --- FIXED SCROLL LOGIC (NAYA CODE) ---
+        useEffect(() => {
+          // Jab output aaye ya loading ho
+          if ((!!composeOutput && composeOutput !== '') || isLoading) {
+             
+             // Check: Kya ye Mobile hai? (1024px se chhota)
+             if (window.innerWidth < 1024) {
+                // Sirf Mobile par scroll karo
+                outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+             }
+             // Agar Laptop (1024px se bada) hai, toh kuch mat karo (No Jump)
+          }
+        }, [composeOutput, isLoading]);
+        return (
+          <div className="space-y-8 transition-all duration-500">
+            <div className="p-6 rounded-2xl glass-card">
+               <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Quick Examples</h3>
+               <div className="flex flex-wrap gap-2">{["leave request for tomorrow", "follow up on payment", "meeting reschedule next week"].map(ex => ( <button key={ex} onClick={() => handleQuickExample(ex)} className="px-3 py-1.5 text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100 rounded-full hover:bg-brand-100 hover:border-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:border-brand-800 dark:hover:bg-brand-900/50 transition-colors">{ex}</button> ))}</div>
+            </div>
+            <div className={`grid gap-8 transition-all duration-500 ${((!!composeOutput && composeOutput !== '') || isLoading) ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
+              <div className="space-y-6">
+                <div className="p-6 rounded-2xl glass-card space-y-4">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">Write Draft</h3>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <select value={composeLength} onChange={(e) => setComposeLength(e.target.value)} className="py-1 px-2 text-xs font-medium rounded-lg bg-slate-100 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:outline-none text-slate-700 dark:text-slate-300">
+                        <option value="Short">Short</option><option value="Medium">Medium</option><option value="Long">Long</option>
+                      </select>
+                      <select value={composeTone} onChange={(e) => setComposeTone(e.target.value)} className="py-1 px-2 text-xs font-medium rounded-lg bg-slate-100 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:outline-none text-slate-700 dark:text-slate-300">
+                        <option>Formal</option><option>Friendly</option><option>Persuasive</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <textarea value={composeInput} onChange={(e) => setComposeInput(e.target.value)} placeholder="Type topic or speak..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all text-base text-slate-800 dark:text-slate-200 placeholder-slate-400" style={{ minHeight: '264px' }} />
+                    <VoiceInput onInput={(text) => setComposeInput(prev => prev + " " + text)} />
+                  </div>
+                </div>
+                <ToolButton onClick={handleCompose} disabled={!composeInput} text="Create My Email" loadingText="Generating" isLoading={isLoading} />
+              </div>
+              {((!!composeOutput && composeOutput !== '') || isLoading) && (
+                <div ref={outputRef} className="animate-slide-up h-fit">
+                  <div className="glass-card p-1 rounded-2xl">
+                      <div className="bg-slate-50/80 dark:bg-slate-800/40 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-gray-200/50 dark:border-gray-700/50">
+                        <ICONS.Sparkles className="w-4 h-4 text-brand-500" /><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Polished Result</span>
+                      </div>
+                      <OutputArea text={composeOutput} onChange={setComposeOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
 
+      const ToolTranslator = ({ translateFromLang, setTranslateFromLang, translateToLang, setTranslateToLang, translateInput, setTranslateInput, translateOutput, setTranslateOutput, handleCopy, handleDownload, handleTranslate, isLoading }) => {
+        const showOutput = (!!translateOutput && translateOutput !== '') || isLoading;
+        return (
+          <div className="space-y-8">
+            <div className="p-6 rounded-2xl glass-card">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <LabeledSelect label="From" value={translateFromLang} onChange={(e) => setTranslateFromLang(e.target.value)}>{LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</LabeledSelect>
+                <div className="mt-6 text-slate-400"><ICONS.ChevronRight /></div>
+                <LabeledSelect label="To" value={translateToLang} onChange={(e) => setTranslateToLang(e.target.value)}>{LANGUAGES.filter(l => l.code !== 'auto').map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</LabeledSelect>
+              </div>
+            </div>
+            <div className={`grid gap-8 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
+              <div className="space-y-6">
+                <div className="p-6 rounded-2xl glass-card space-y-4">
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">Source Text</h3>
+                  <div className="relative">
+                    <textarea value={translateInput} onChange={(e) => setTranslateInput(e.target.value)} placeholder="Enter text..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200" style={{ minHeight: '264px' }} />
+                    <VoiceInput onInput={(text) => setTranslateInput(prev => prev + " " + text)} />
+                  </div>
+                </div>
+                <ToolButton onClick={handleTranslate} disabled={!translateInput} text="Translate Text" loadingText="Translating" isLoading={isLoading} />
+              </div>
+              {showOutput && (
+                <div className="animate-slide-up h-fit">
+                    <div className="glass-card p-1 rounded-2xl border-purple-200 dark:border-purple-900/30">
+                      <div className="bg-purple-50/40 dark:bg-purple-900/20 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-purple-100 dark:border-purple-900/30"><ICONS.Translate className="w-4 h-4 text-purple-500" /><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Translation</span></div>
+                      <OutputArea text={translateOutput} onChange={setTranslateOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      const ToolHumanizer = ({ humanizeTone, setHumanizeTone, humanizeInput, setHumanizeInput, humanizeOutput, setHumanizeOutput, handleCopy, handleDownload, handleHumanize, isLoading }) => {
+        const showOutput = (!!humanizeOutput && humanizeOutput !== '') || isLoading;
+        return (
+          <div className="space-y-8">
+            <div className="p-6 rounded-2xl glass-card">
+              <LabeledSelect label="Select Tone" value={humanizeTone} onChange={(e) => setHumanizeTone(e.target.value)}><option>Professional</option><option>Conversational</option><option>Casual</option></LabeledSelect>
+            </div>
+            <div className={`grid gap-8 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
+              <div className="space-y-6">
+                <div className="p-6 rounded-2xl glass-card space-y-4">
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">AI Text</h3>
+                  <div className="relative">
+                    <textarea value={humanizeInput} onChange={(e) => setHumanizeInput(e.target.value)} placeholder="Paste robotic text..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200" style={{ minHeight: '264px' }} />
+                    <VoiceInput onInput={(text) => setHumanizeInput(prev => prev + " " + text)} />
+                  </div>
+                </div>
+                <ToolButton onClick={handleHumanize} disabled={!humanizeInput} text="Humanize Text" loadingText="Humanizing" isLoading={isLoading} />
+              </div>
+              {showOutput && (
+                <div className="animate-slide-up h-fit">
+                    <div className="glass-card p-1 rounded-2xl border-green-200 dark:border-green-900/30">
+                      <div className="bg-green-50/40 dark:bg-green-900/20 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-green-100 dark:border-green-900/30"><ICONS.Sparkles className="w-4 h-4 text-green-500" /><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Humanized Result</span></div>
+                      <OutputArea text={humanizeOutput} onChange={setHumanizeOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+// --- TOOL: GROUP CONTACTS MANAGER (With Strict Validation) ---
+      const ToolContacts = ({ handleCopy, isLoading }) => {
+        const [groups, setGroups] = useLocalStorage('mailmate-groups', []);
+        
+        const [groupName, setGroupName] = useState('');
+        const [emailList, setEmailList] = useState('');
+        const [showForm, setShowForm] = useState(false);
+        const [expandedGroupId, setExpandedGroupId] = useState(null); 
+        const [newMemberEmail, setNewMemberEmail] = useState(''); 
+
+        // --- HELPER: STRICT EMAIL VALIDATOR ---
+        const isValidEmail = (email) => {
+            // Regex: Standard email pattern check
+            const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            
+            // Check 1: Format Sahi hai?
+            if (!regex.test(email)) return false;
+
+            // Check 2: Common Typos (Optional but smart)
+            const domain = email.split('@')[1];
+            if (domain === 'gmil.com' || domain === 'gmal.com') return false; // Common typo blocking
+            
+            return true;
+        };
+
+        // --- 1. Create Group Logic ---
+        const handleCreateGroup = () => {
+          if (!groupName || !emailList) { alert("Please enter details"); return; }
+          
+          const rawEmails = emailList.split(/[\n,;]+/).map(e => e.trim());
+          
+          // Filter: Sirf Valid Emails hi lenge
+          const validEmails = rawEmails.filter(e => isValidEmail(e));
+          const invalidCount = rawEmails.length - validEmails.length;
+
+          if(validEmails.length === 0) { 
+              alert("❌ No valid emails found! Check spelling (e.g. name@domain.com)"); 
+              return; 
+          }
+
+          // Duplicates Hatana
+          const uniqueEmails = [...new Set(validEmails)];
+
+          // Report dena
+          let msg = `✅ Group Created with ${uniqueEmails.length} emails.`;
+          if (invalidCount > 0) msg += `\n⚠️ ${invalidCount} invalid emails were rejected.`;
+          alert(msg);
+
+          const newGroup = { 
+              id: Date.now(), 
+              name: groupName, 
+              emails: uniqueEmails, 
+              count: uniqueEmails.length 
+          };
+          
+          setGroups([newGroup, ...groups]);
+          setGroupName(''); setEmailList(''); setShowForm(false);
+          playSound('download');
+        };
+
+        const deleteGroup = (id) => {
+           if(confirm("Are you sure you want to delete this group?")) {
+             setGroups(groups.filter(g => g.id !== id));
+             playSound('delete');
+           }
+        };
+
+        // --- 2. Single Member Add Logic ---
+        const addMemberToGroup = (groupId) => {
+            // Pehle VALIDATION check karein
+            if (!isValidEmail(newMemberEmail)) { 
+                alert("🚫 Invalid Email Address!\nMake sure it has '@' and a domain like '.com'"); 
+                playSound('delete'); // Error sound
+                return; 
+            }
+            
+            const updatedGroups = groups.map(g => {
+                if(g.id === groupId) {
+                    if(g.emails.includes(newMemberEmail)) {
+                        alert("⚠️ This email is already in the group!");
+                        return g; 
+                    }
+                    return { ...g, emails: [...g.emails, newMemberEmail], count: g.emails.length + 1 };
+                }
+                return g;
+            });
+            
+            setGroups(updatedGroups);
+            setNewMemberEmail(''); 
+            playSound('micOn');
+        };
+
+        const removeMemberFromGroup = (groupId, emailToRemove) => {
+            const updatedGroups = groups.map(g => {
+                if(g.id === groupId) {
+                    const newEmails = g.emails.filter(e => e !== emailToRemove);
+                    return { ...g, emails: newEmails, count: newEmails.length };
+                }
+                return g;
+            });
+            setGroups(updatedGroups);
+            playSound('delete');
+        };
+
+        const sendToGroup = (group) => {
+           const recipientString = group.emails.join(',');
+           window.open(`mailto:?bcc=${recipientString}`, '_blank');
+           playSound('micOn');
+        };
+
+        return (
+          <div className="space-y-6 max-w-4xl mx-auto animate-slide-up">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 rounded-2xl glass-card">
+               <div>
+                 <h2 className="text-xl font-bold text-slate-800 dark:text-white">Contact Groups</h2>
+                 <p className="text-sm text-slate-500">Only valid emails will be added.</p>
+               </div>
+               <button onClick={() => setShowForm(!showForm)} className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg transition-all flex items-center gap-2">
+                 {showForm ? <ICONS.X className="w-5 h-5"/> : <ICONS.Plus className="w-5 h-5"/>}
+                 {showForm ? 'Cancel' : 'New Group'}
+               </button>
+            </div>
+
+            {/* Create Form */}
+            {showForm && (
+              <div className="p-6 rounded-2xl bg-white border border-brand-200 dark:bg-slate-800 dark:border-brand-900 animate-pop shadow-xl">
+                 <div className="space-y-4">
+                    <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="Group Name (e.g. Sales Team)" className="w-full p-3 rounded-lg border dark:bg-slate-900 dark:border-slate-700 dark:text-white outline-none" />
+                    <textarea value={emailList} onChange={(e) => setEmailList(e.target.value)} placeholder="Paste emails here (separated by commas or new lines)..." rows="3" className="w-full p-3 rounded-lg border dark:bg-slate-900 dark:border-slate-700 dark:text-white outline-none" />
+                    <button onClick={handleCreateGroup} className="w-full py-3 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Save Valid Emails</button>
+                 </div>
+              </div>
+            )}
+
+            {/* Groups List */}
+            <div className="grid grid-cols-1 gap-4">
+              {groups.length === 0 ? (
+                <div className="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">No groups found.</div>
+              ) : (
+                groups.map(group => (
+                  <div key={group.id} className={`group relative p-5 rounded-xl bg-white dark:bg-slate-800/50 border transition-all ${expandedGroupId === group.id ? 'border-brand-500 ring-1 ring-brand-500/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                     
+                     {/* Group Header Row */}
+                     <div className="flex justify-between items-center cursor-pointer" onClick={() => setExpandedGroupId(expandedGroupId === group.id ? null : group.id)}>
+                        <div className="flex items-center gap-4">
+                           <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-brand-600 dark:text-brand-300 font-bold text-lg">
+                             {group.name[0].toUpperCase()}
+                           </div>
+                           <div>
+                             <h3 className="font-bold text-lg text-slate-800 dark:text-white">{group.name}</h3>
+                             <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                                <span>{group.count} Members</span>
+                                {expandedGroupId === group.id ? <ICONS.ChevronDown className="w-3 h-3 rotate-180 transition-transform"/> : <ICONS.ChevronDown className="w-3 h-3 transition-transform"/>}
+                             </div>
+                           </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={(e) => { e.stopPropagation(); sendToGroup(group); }} className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-90">
+                                <ICONS.Mail className="w-4 h-4" /> Send
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); deleteGroup(group.id); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                                <ICONS.Trash className="w-4 h-4" />
+                            </button>
+                        </div>
+                     </div>
+
+                     {/* Expanded View (Members List) */}
+                     {expandedGroupId === group.id && (
+                        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 animate-slide-up">
+                            
+                            {/* Add New Member Input */}
+                            <div className="flex gap-2 mb-4">
+                                <input 
+                                    type="email" 
+                                    value={newMemberEmail}
+                                    onChange={(e) => setNewMemberEmail(e.target.value)}
+                                    placeholder="Add new email address..." 
+                                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:border-brand-500 outline-none"
+                                    onKeyDown={(e) => e.key === 'Enter' && addMemberToGroup(group.id)}
+                                />
+                                <button onClick={() => addMemberToGroup(group.id)} className="px-3 py-2 bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300 rounded-lg font-bold hover:bg-brand-200 transition-colors">
+                                    <ICONS.Plus className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Members List */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2">
+                                {group.emails.map((email, idx) => (
+                                    <div key={idx} className="flex justify-between items-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700">
+                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate mr-2">{email}</span>
+                                        <button onClick={() => removeMemberFromGroup(group.id, email)} className="text-slate-400 hover:text-red-500 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded" title="Remove member">
+                                            <ICONS.Minus className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                     )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      // --- MAIN APP ---
+      function App() {
+        const [currentTool, setCurrentTool] = useState('compose');
+        const [history, setHistory] = useLocalStorage('mailmate-history', []);
+        const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+        const [isLoading, setIsLoading] = useState(false);
+        const [error, setError] = useState(null);
+        const [toastMsg, setToastMsg] = useState(null); // Toast state
+
+        const [theme, setTheme] = useState(() => (localStorage.getItem('mailmate-theme') || 'light'));
+        useEffect(() => {
+          if (theme === 'dark') { document.documentElement.classList.add('dark'); document.documentElement.classList.remove('light'); }
+          else { document.documentElement.classList.remove('dark'); document.documentElement.classList.add('light'); }
+          localStorage.setItem('mailmate-theme', theme);
+        }, [theme]);
+        const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
+        useEffect(() => { const splash = document.getElementById('splash-screen'); if(splash) { setTimeout(() => { splash.classList.add('fade-out'); setTimeout(()=>splash.style.display='none',600); }, 2200); } }, []);
+
+        // States
+        const [composeInput, setComposeInput] = useState('');
+        const [composeOutput, setComposeOutput] = useState('');
+        const [composeTone, setComposeTone] = useState('Formal');
+        const [composeLength, setComposeLength] = useState('Medium'); // New Length State
+        const [isSmartCompose, setIsSmartCompose] = useState(true);
+
+        const [translateInput, setTranslateInput] = useState('');
+        const [translateOutput, setTranslateOutput] = useState('');
+        const [translateFromLang, setTranslateFromLang] = useState('auto');
+        const [translateToLang, setTranslateToLang] = useState('en');
+
+        const [humanizeInput, setHumanizeInput] = useState('');
+        const [humanizeOutput, setHumanizeOutput] = useState('');
+        const [humanizeTone, setHumanizeTone] = useState('Professional');
+
+        // Handlers
+        const showToast = (msg) => { setToastMsg(msg); setTimeout(() => setToastMsg(null), 3000); };
+        
+        // Isme 'playSound' add kiya hai
+        const handleCopy = (text) => {
+          if (!text) return;
+          playSound('copy'); // 🔊 COPY SOUND
+          navigator.clipboard.writeText(text).then(() => showToast("Copied to clipboard!"));
+        };
+
+        // Isme bhi 'playSound' add kiya hai
+        const handleDownloadPDF = (text) => {
+          if (!text) return;
+          playSound('download'); // 🔊 DOWNLOAD SOUND
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          const splitText = doc.splitTextToSize(text, 180);
+          doc.text(splitText, 10, 10);
+          doc.save("mailmate-result.pdf");
+          showToast("PDF Downloaded!");
+        };;
+        // Naya Feature: Open in Mail App
+        const handleOpenMail = (text) => {
+          if (!text) return;
+          // URL encode karke mailto link banana
+          const subject = "Draft from MailMate";
+          const body = encodeURIComponent(text);
+          window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+        };
+
+        const addHistoryItem = (item) => {
+          const newHistory = [item, ...history];
+          if (newHistory.length > 20) newHistory.pop();
+          setHistory(newHistory);
+        };
+
+        const handleHistoryClick = (item) => {
+          setCurrentTool(item.tool);
+          if (item.tool === 'compose') { setComposeInput(item.original); setComposeOutput(item.result); }
+          if (item.tool === 'translate') { setTranslateInput(item.original); setTranslateOutput(item.result); }
+          if (item.tool === 'humanize') { setHumanizeInput(item.original); setHumanizeOutput(item.result); }
+          setIsMobileMenuOpen(false);
+        };
+
+        // Isme 'playSound' add kiya hai
+        const deleteHistoryItem = (id) => {
+            playSound('delete'); // 🔊 DELETE SOUND
+            setHistory(history.filter(item => item.id !== id));
+        };const renameHistoryItem = (item) => { const newName = prompt("Rename item:", item.label || item.original); if (newName) setHistory(history.map(h => h.id === item.id ? { ...h, label: newName } : h)); };
+
+        // API Call
+        const callAIApi = async (systemPrompt, userPrompt) => {
+          setError(null);
+          try {
+            // Render URL Link
+            const response = await fetch('https://mailmatepro-ai.onrender.com/ask-ai', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ system: systemPrompt, message: userPrompt })
+            });
+            if (!response.ok) throw new Error("Server Error: " + response.status);
+            const result = await response.json();
+            if (result.candidates && result.candidates[0].content) return result.candidates[0].content.parts[0].text;
+            throw new Error("AI ne koi jawab nahi diya.");
+          } catch (err) { console.error(err); setError("Server connection failed."); throw err; }
+        };
+
+        const handleToolAction = async (tool, input, tone, extra) => {
+          setIsLoading(true);
+          if (tool === 'compose') setComposeOutput('');
+          if (tool === 'translate') setTranslateOutput('');
+          if (tool === 'humanize') setHumanizeOutput('');
+
+          let system = "", user = "";
+          if (tool === 'compose') {
+             system = "You are an AI email assistant. Write a professional email.";
+             // Added Length to Prompt
+             user = `Topic: ${input}\nTone: ${tone}\nLength: ${composeLength}`; 
+          } else if (tool === 'translate') {
+             system = "You are an AI translator.";
+             user = `Translate from ${extra.from} to ${extra.to}: "${input}"`;
+          } else if (tool === 'humanize') {
+             system = "Humanize this text to sound natural.";
+             user = `Text: "${input}"\nTone: ${tone}`;
+          }
+
+          try {
+            const result = await callAIApi(system, user);
+            if (tool === 'compose') setComposeOutput(result);
+            if (tool === 'translate') setTranslateOutput(result);
+            if (tool === 'humanize') setHumanizeOutput(result);
+            addHistoryItem({ id: Date.now(), tool, original: input, label: input, result, timestamp: new Date().toISOString() });
+          } catch (e) {
+             const errMsg = "Error: Please check your connection.";
+             if (tool === 'compose') setComposeOutput(errMsg);
+             if (tool === 'translate') setTranslateOutput(errMsg);
+             if (tool === 'humanize') setHumanizeOutput(errMsg);
+          } finally { setIsLoading(false); }
+        };
+
+        const getSidebarClass = (id) => {
+           const base = "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 font-bold text-sm mb-1 ";
+           if (currentTool === id) {
+             if(id === 'compose') return base + "bg-sky-50 text-sky-600 shadow-sm border border-sky-100 dark:bg-sky-900/20 dark:text-white dark:border-sky-800";
+             if(id === 'translate') return base + "bg-purple-50 text-purple-600 shadow-sm border border-purple-100 dark:bg-purple-900/20 dark:text-white dark:border-purple-800";
+             if(id === 'humanize') return base + "bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100 dark:bg-emerald-900/20 dark:text-white dark:border-emerald-800";
+           }
+           return base + "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800/50";
+        };
+
+        return (
           <div className="flex h-screen w-full text-slate-900 dark:text-white selection:bg-brand-100 dark:selection:bg-brand-900 transition-colors duration-300">
-
-           
-
-            {/* SIDEBAR */}
-
+            {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
+            
             <aside className={`fixed inset-y-0 left-0 z-50 w-72 glass flex flex-col transition-transform duration-300 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-
               <div className="p-6 flex items-center gap-3 mb-2">
 
-             
-
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 dark:from-sky-400 dark-to-slate-600-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 ring-1 ring-black/5 dark:ring-white/10">
+                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 dark:from-sky-400 dark-to-slate-600-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 ring-1 ring-black/5 dark:ring-white/10">
 
                   <ICONS.Mail className="w-7 h-7" />
 
                 </div>
 
                 <div>
-
-                 
-
-                <h1 className="text-3xl font-bold font-heading tracking-tight text-slate-800 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-b dark:from-white dark:to-slate-600 drop-shadow-sm">MailMate</h1>
-
-                <span className="text-[13px] font-bold font-heading tracking-tight text-slate-800 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-b dark:from-white dark:to-slate-600 drop-shadow-sm">Pro</span>
-
-                </div>
-
+                  <h1 className="text-3xl font-bold font-heading tracking-tight text-slate-800 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-b dark:from-white dark:to-slate-600 drop-shadow-sm">MailMate</h1>
+                  <span className="text-[13px] font-bold font-heading tracking-tight text-slate-800 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-b dark:from-white dark:to-slate-600 drop-shadow-sm">Pro</span>
+               </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden ml-auto text-slate-400"><ICONS.X /></button>
-
               </div>
-
-
-
               <nav className="px-4 space-y-1">
-
                 <p className="px-2 text-[10px] font-bold uppercase text-slate-400 mb-2 tracking-widest mt-2">Workspace</p>
-
-                {[
-
-                  { id: 'compose', icon: ICONS.Mail, label: 'Composer' },
-
-                  { id: 'translate', icon: ICONS.Translate, label: 'Translator' },
-
-                  { id: 'humanize', icon: ICONS.Sparkles, label: 'Humanizer' }
-
-                ].map(t => (
-
-                  <button key={t.id} onClick={() => { setCurrentTool(t.id); setIsMobileMenuOpen(false); }} className={getSidebarClass(t.id)}>
-
-                    <t.icon className={`w-5 h-5 ${currentTool === t.id ? '' : 'opacity-70'}`} /> <span>{t.label}</span>
-
-                  </button>
-
+                {[{ id: 'compose', icon: ICONS.Mail, label: 'Composer' }, 
+                { id: 'translate', icon: ICONS.Translate, label: 'Translator' }, 
+                { id: 'humanize', icon: ICONS.Sparkles, label: 'Humanizer' },
+                { id: 'contacts', icon: (p)=><svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, label: 'Groups' }
+              ].map(t => ( 
+                <button key={t.id} onClick={() => { setCurrentTool(t.id); setIsMobileMenuOpen(false); }} className={getSidebarClass(t.id)}>
+                  <t.icon className={`w-5 h-5 ${currentTool === t.id ? '' : 'opacity-70'}`} /> <span>{t.label}</span>
+                  </button> 
                 ))}
-
+                
               </nav>
-
-
-
               <div className="mt-auto p-4 border-t border-slate-200 dark:border-gray-700/50 bg-slate-50/50 dark:bg-slate-900/30">
-
-                 <div className="flex justify-between items-center mb-3">
-
-                    <span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Recent History</span>
-
-                    <button onClick={() => setHistory([])} className="flex items-center gap-1 px-2 py-1 rounded bg-red-50 text-[10px] font-bold uppercase text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 transition-colors border border-red-100 dark:border-red-900/20">
-
-                       Clear All
-
-                    </button>
-
-                 </div>
-
-                 
-
-                  <div className="space-y-1 h-[440px] overflow-y-auto pr-1 custom-scrollbar">
-
-                    {history.length > 0 ? history.map(item => <HistoryItem key={item.id} item={item} onClick={handleHistoryClick} onDelete={deleteHistoryItem} onRename={renameHistoryItem} />) : <p className="text-xs text-center text-slate-400 py-8 bg-slate-100 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">No history yet</p>}
-
-                 </div>
-
+                 <div className="flex justify-between items-center mb-3"><span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Recent History</span><button onClick={() => setHistory([])} className="px-2 py-1 rounded bg-red-50 text-[10px] font-bold uppercase text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 transition-colors">Clear All</button></div>
+                 <div className="space-y-1 h-[440px] overflow-y-auto pr-1 custom-scrollbar">{history.length > 0 ? history.map(item => <HistoryItem key={item.id} item={item} onClick={handleHistoryClick} onDelete={deleteHistoryItem} onRename={renameHistoryItem} />) : <p className="text-xs text-center text-slate-400 py-8 bg-slate-100 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200">No history yet</p>}</div>
               </div>
-
             </aside>
 
-
-
-            {/* MAIN CONTENT */}
-
             <div className="flex-1 flex flex-col overflow-hidden relative">
-
-             
-
-              {/* BACKGROUND SYSTEM: Fixed Light Mode vs Dark Mode */}
-
-              {/* Light Mode Background - Always present, covered by dark if needed */}
-
               <div className="absolute inset-0 bg-[#f8fafc] -z-30"></div>
-
-              {/* Dark Mode Background - Only visible in dark mode */}
-
               <div className="absolute inset-0 bg-gradient-to-br from-[#0B1120] via-[#1e1b4b] to-[#0f172a] opacity-0 dark:opacity-100 transition-opacity duration-500 -z-20"></div>
-
-
-
-              {/* AMBIENT BLOBS (Subtler in Dark Mode) */}
-
               <div className="absolute top-0 left-0 w-96 h-96 bg-brand-200/30 dark:bg-indigo-600/10 rounded-full mix-blend-multiply dark:mix-blend-plus-lighter filter blur-[100px] opacity-50 animate-blob"></div>
-
               <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200/30 dark:bg-purple-600/10 rounded-full mix-blend-multiply dark:mix-blend-plus-lighter filter blur-[100px] opacity-50 animate-blob animation-delay-2000"></div>
 
-
-
               <header className="lg:hidden flex items-center justify-between p-4 glass border-b border-gray-200/50 dark:border-gray-700/50 z-20">
-
                 <span className="font-bold text-lg font-heading bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">MailMate</span>
-
-                <div className="flex items-center gap-2">
-                  <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-                  <button onClick={() => setIsMobileMenuOpen(true)}><ICONS.Menu /></button>
-                </div>
-
+                <div className="flex items-center gap-2"><ThemeToggle theme={theme} toggleTheme={toggleTheme} /><button onClick={() => setIsMobileMenuOpen(true)}><ICONS.Menu /></button></div>
               </header>
 
               <main className="flex-1 overflow-y-auto p-4 sm:p-8 z-10">
-                    <div className="hidden lg:flex justify-end mb-4">
-                      <div className="glass rounded-full p-1 border border-slate-200 dark:border-gray-700">
-                          <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-                        </div>
-                    </div>
-
-
+                    <div className="hidden lg:flex justify-end mb-4"><div className="glass rounded-full p-1 border border-slate-200 dark:border-gray-700"><ThemeToggle theme={theme} toggleTheme={toggleTheme} /></div></div>
                     <div className="max-w-7xl mx-auto pb-10">
-                        <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-4 tracking-tight font-heading text-slate-900 dark:text-white drop-shadow-sm">
-                            {currentTool === 'compose' ? 'Smart Email Composer' : currentTool === 'translate' ? 'AI Translator' : 'AI Humanizer'}
-                        </h1>
-
-                 
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-4 tracking-tight font-heading text-slate-900 dark:text-white drop-shadow-sm">{currentTool === 'compose' ? 'Smart Email Composer' : currentTool === 'translate' ? 'AI Translator' : currentTool === 'humanize' ? 'AI Humanizer' : 'Contact Groups'}</h1>
                         <FeatureTicker />
+                        
+                        {currentTool === 'compose' && <ToolComposer 
+                          handleQuickExample={(t) => setComposeInput(t)} 
+                          composeInput={composeInput} setComposeInput={setComposeInput} 
+                          isSmartCompose={isSmartCompose} setIsSmartCompose={setIsSmartCompose} 
+                          composeTone={composeTone} setComposeTone={setComposeTone} 
+                          composeLength={composeLength} setComposeLength={setComposeLength} // Pass Length Props
+                          composeOutput={composeOutput} setComposeOutput={setComposeOutput} 
+                          handleCopy={handleCopy} handleDownload={handleDownloadPDF} // Pass new handlers
+                          handleCompose={() => handleToolAction('compose', composeInput, composeTone)} 
+                          isLoading={isLoading} />}
 
-                 
-                        {currentTool === 'compose' && <ToolComposer
+                        {currentTool === 'translate' && <ToolTranslator 
+                          translateFromLang={translateFromLang} setTranslateFromLang={setTranslateFromLang} 
+                          translateToLang={translateToLang} setTranslateToLang={setTranslateToLang} 
+                          translateInput={translateInput} setTranslateInput={setTranslateInput} 
+                          translateOutput={translateOutput} setTranslateOutput={setTranslateOutput} 
+                          handleCopy={handleCopy} handleDownload={handleDownloadPDF} 
+                          handleTranslate={() => handleToolAction('translate', translateInput, null, {from: translateFromLang, to: translateToLang})} 
+                          isLoading={isLoading} />}
 
-                        handleQuickExample={(t) => setComposeInput(t)}
+                        {currentTool === 'humanize' && <ToolHumanizer 
+                          humanizeTone={humanizeTone} setHumanizeTone={setHumanizeTone} 
+                          humanizeInput={humanizeInput} setHumanizeInput={setHumanizeInput} 
+                          humanizeOutput={humanizeOutput} setHumanizeOutput={setHumanizeOutput} 
+                          handleCopy={handleCopy} handleDownload={handleDownloadPDF} 
+                          handleHumanize={() => handleToolAction('humanize', humanizeInput, humanizeTone)} 
+                          isLoading={isLoading} />}
+                          {/* Existing tools ke neeche... */}
 
-                        composeInput={composeInput} setComposeInput={setComposeInput}
-                        isSmartCompose={isSmartCompose} setIsSmartCompose={setIsSmartCompose}
-                        composeTone={composeTone} setComposeTone={setComposeTone}
-                        composeOutput={composeOutput} setComposeOutput={setComposeOutput}
-                        copyCompose={copyCompose} isComposeCopied={isComposeCopied}
-                        handleCompose={() => handleToolAction('compose', composeInput, composeTone)}
-
-                        isLoading={isLoading} />}
-
-
-                        {currentTool === 'translate' && <ToolTranslator
-
-                        translateFromLang={translateFromLang} setTranslateFromLang={setTranslateFromLang}
-                        translateToLang={translateToLang} setTranslateToLang={setTranslateToLang}
-                        translateInput={translateInput} setTranslateInput={setTranslateInput}
-                        translateOutput={translateOutput} setTranslateOutput={setTranslateOutput}
-                        copyTranslate={copyTranslate} isTranslateCopied={isTranslateCopied}
-                        handleTranslate={() => handleToolAction('translate', translateInput, null, {from: translateFromLang, to: translateToLang})}
-
-                        isLoading={isLoading} />}
-
-
-                        {currentTool === 'humanize' && <ToolHumanizer
-
-                        humanizeTone={humanizeTone} setHumanizeTone={setHumanizeTone}
-                        humanizeInput={humanizeInput} setHumanizeInput={setHumanizeInput}
-                        humanizeOutput={humanizeOutput} setHumanizeOutput={setHumanizeOutput}
-                        copyHumanize={copyHumanize} isHumanizeCopied={isHumanizeCopied}
-                        handleHumanize={() => handleToolAction('humanize', humanizeInput, humanizeTone)}
-                        isLoading={isLoading} />}
-
-                   </div>
+                          {currentTool === 'contacts' && <ToolContacts 
+                          handleCopy={handleCopy} 
+                          isLoading={isLoading} />}
+                    </div>
               </main>
             </div>
           </div>
-
         );
-        }
+      }
 
       const root = ReactDOM.createRoot(document.getElementById('root'));
-
       root.render(<App />);
     </script>
   </body>
-
 </html>
