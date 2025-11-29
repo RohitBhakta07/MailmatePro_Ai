@@ -1,1 +1,93 @@
 # MailmatePro_Ai
+<div align="center">
+
+  <br />
+  <img src="https://cdn-icons-png.flaticon.com/512/9068/9068642.png" alt="Logo" width="80" height="80">
+
+  <h1 align="center">MailMate Pro</h1>
+
+  <p align="center">
+    <strong>The Ultimate AI Workspace: Compose, Translate & Organize.</strong>
+    <br />
+    Generated entirely in the browser using React & Tailwind via CDN.
+    <br />
+    <br />
+    <a href="#-demo-gallery"><strong>View Demo »</strong></a>
+    ·
+    <a href="https://github.com/YOUR_USERNAME/REPO_NAME/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/YOUR_USERNAME/REPO_NAME/pulls">Request Feature</a>
+  </p>
+</div>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License" />
+</div>
+
+<br />
+
+<h2 id="-demo-gallery">📸 Demo Gallery</h2>
+
+<p align="center">Experience the <strong>Glassmorphism UI</strong> in both Dark and Light modes.</p>
+
+<table align="center">
+  <tr>
+    <td align="center" width="50%">
+      <strong>🌌 Dark Mode (The Workspace)</strong>
+      <br /><br />
+      <img src="./assets/screenshots/hero-dark.png" alt="Dark Mode" width="100%" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);" />
+    </td>
+    <td align="center" width="50%">
+      <strong>☀️ Light Mode (Clean UI)</strong>
+      <br /><br />
+      <img src="./assets/screenshots/hero-light.png" alt="Light Mode" width="100%" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>✨ AI Tools (Translator & Humanizer)</strong>
+      <br /><br />
+      <img src="./assets/screenshots/feature-1.png" alt="Features" width="100%" style="border-radius: 10px;" />
+    </td>
+    <td align="center">
+      <strong>📱 Fully Responsive Mobile View</strong>
+      <br /><br />
+      <img src="./assets/screenshots/mobile-view.png" alt="Mobile View" width="100%" style="border-radius: 10px;" />
+    </td>
+  </tr>
+</table>
+
+---
+
+## 🚀 Overview
+
+**MailMate Pro** is a single-file, serverless AI application designed to boost productivity. It combines email drafting, language translation, and text humanization into one sleek interface. It creates PDFs, manages contact groups, and even takes voice input—all without a backend server setup.
+
+### 🔥 Key Features
+
+- **✍️ AI Composer:** Generate professional emails with tone selection (Formal, Friendly, Persuasive).
+- **🗣️ Voice-to-Text:** Use the microphone to dictate your drafts instantly.
+- **🌍 Universal Translator:** Translate text between 12+ languages.
+- **✨ Text Humanizer:** Convert robotic AI text into natural, human-sounding language.
+- **👥 Contact Manager:** Create valid email groups and send bulk BCC emails securely.
+- **📥 PDF Export:** Download any result as a clean PDF file.
+- **🎨 Dynamic Theme:** Persisted Dark/Light mode with smooth transitions.
+
+---
+
+## 🛠️ Project Structure
+
+Since this is a lightweight CDN-based project, the structure is super simple:
+
+```text
+MailMate-Pro/
+├── assets/
+│   └── screenshots/      # Images used in README
+│       ├── hero-dark.png
+│       ├── hero-light.png
+│       └── ...
+├── index.html            # Main Application File (Code resides here)
+└── README.md             # Documentation
