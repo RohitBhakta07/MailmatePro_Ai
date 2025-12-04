@@ -1,1109 +1,1754 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <link rel="manifest" href="manifest.json">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MailMate Pro - AI Workspace</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MailMate Pro - AI Workspace</title>
 
-    <script>
-      window.tailwind = window.tailwind || {};
-      window.tailwind.config = window.tailwind.config || {};
-      window.tailwind.config.darkMode = 'class';
-      window.tailwind.config.theme = {
-        extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Outfit', 'sans-serif'] },
-          colors: {
-            brand: { 50: '#f0f9ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
-          },
-          animation: { blob: "blob 10s infinite", 'spin-slow': 'spin 3s linear infinite', pop: "pop 0.3s ease-out forwards" },
-          keyframes: {
-            blob: { "0%": { transform: "translate(0px, 0px) scale(1)" }, "33%": { transform: "translate(30px, -50px) scale(1.1)" }, "66%": { transform: "translate(-20px, 20px) scale(0.9)" }, "100%": { transform: "translate(0px, 0px) scale(1)" } },
-            pop: { "0%": { opacity: 0, transform: "translateY(20px) scale(0.9)" }, "100%": { opacity: 1, transform: "translateY(0) scale(1)" } }
-          }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700;800&display=swap"
+    rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = window.tailwind.config || {};
+    window.tailwind.config.darkMode = 'class';
+    window.tailwind.config.theme = {
+      extend: {
+        fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Outfit', 'sans-serif'] },
+        colors: {
+          brand: { 50: '#f0f9ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+        },
+        animation: { blob: "blob 10s infinite", 'spin-slow': 'spin 3s linear infinite', pop: "pop 0.3s ease-out forwards" },
+        keyframes: {
+          blob: { "0%": { transform: "translate(0px, 0px) scale(1)" }, "33%": { transform: "translate(30px, -50px) scale(1.1)" }, "66%": { transform: "translate(-20px, 20px) scale(0.9)" }, "100%": { transform: "translate(0px, 0px) scale(1)" } },
+          pop: { "0%": { opacity: 0, transform: "translateY(20px) scale(0.9)" }, "100%": { opacity: 1, transform: "translateY(0) scale(1)" } }
         }
       }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <script>
-      (function() {
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script>
+      (function () {
         try {
+          // 1. Check karo agar user ne pehle koi theme save ki hai
           const saved = localStorage.getItem('mailmate-theme');
-          const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (saved === '"dark"' || (!saved && sysDark)) document.documentElement.classList.add('dark');
-          else document.documentElement.classList.remove('dark');
-        } catch (e) {}
+
+          // 2. Logic: Agar 'dark' saved hai YA pehli baar aaya hai (null) -> To Dark Mode On karo
+          // (Humne System theme check karna band kar diya hai)
+          if (saved === 'dark' || !saved) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('mailmate-theme', 'dark'); // Default set kar do
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) { }
       })();
-    </script>
+  </script>
 
-    <style>
-      body {
-        transition: background-color 0.3s ease, color 0.3s ease;
-     }
+  <style>
+    body {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
 
-      .glass { 
-        background: #f6f3f7fa; 
-        border-right: 1px solid #c6eaed; 
-      }
+    /* Light Mode Glass (Royal Feel) */
+    .glass {
+      background: rgba(255, 255, 255, 0.6);
+      /* Thoda transparent */
+      backdrop-filter: blur(20px);
+      /* Blurring effect */
+      border-right: 1px solid rgba(255, 255, 255, 0.5);
+    }
 
-      .glass-card { 
-        background: #f3f3f4d9; 
-        border: 1px solid #edddf6dc; 
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
-      }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.5);
+      /* Thoda transparent */
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+      /* Soft Royal Shadow */
+    }
 
-      .dark .glass { 
-        background: rgba(15, 23, 42, 0.7); 
-        border-right: 1px solid rgba(255, 255, 255, 0.08); 
-        backdrop-filter: blur(20px); 
-      }
+    .dark .glass {
+      background: rgba(15, 23, 42, 0.7);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+    }
 
-      .dark .glass-card { 
-        background: rgba(30, 41, 59, 0.4); 
-        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5); 
-        border: 1px solid rgba(255, 255, 255, 0.08); 
-        backdrop-filter: blur(16px); 
-      }
+    .dark .glass-card {
+      background: rgba(30, 41, 59, 0.4);
+      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+    }
 
-      @keyframes slideUpFade { 
-        from { opacity: 0; transform: translateY(20px); } 
-        to { opacity: 1; transform: translateY(0); } 
-      }
-
-      .animate-slide-up { 
-        animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
-      }
-
-      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-      .animate-cursor { animation: blink 1s step-end infinite; }
- /* Splash */
-
-      .splash-screen { 
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #4c1d95 100%); 
-        display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        z-index: 9999; transition: opacity 0.8s ease, visibility 0.8s ease; 
-      }
-
-      .splash-title {
-        font-family: 'Outfit', sans-serif;
-        font-size: 3.5rem; font-weight: 700; letter-spacing: -0.02em;
-        background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
-        -webkit-background-clip: text; background-clip: text; color: transparent;
-        animation: zoomFade 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        margin-bottom: 1.5rem;
-      }
-
-      .splash-logo {
-        color: #6366f1;
+    @keyframes slideUpFade {
+      from {
         opacity: 0;
-        animation: lensEffect 1.5s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+        transform: translateY(20px);
       }
 
-      .splash-screen.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-      @keyframes zoomFade {
-        0% { opacity: 0; transform: scale(0.8); }
-        100% { opacity: 1; transform: scale(1); }
+    .animate-slide-up {
+      animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
       }
 
-      @keyframes lensEffect {
-        0% { opacity: 0; transform: scale(0.5); filter: blur(10px); }
-        60% { opacity: 1; transform: scale(1.2); filter: blur(0px); }
-        100% { opacity: 1; transform: scale(1); filter: blur(0); }
+      50% {
+        opacity: 0;
       }
-      /* Scrollbar */
-      ::-webkit-scrollbar { width: 6px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-      .dark ::-webkit-scrollbar-thumb { background: #475569; }
-           
-    </style>
-  </head>
+    }
 
-  <body class="font-sans bg-[#f8fafc] dark:bg-[#050810] text-slate-900 dark:text-slate-200 overflow-hidden transition-colors duration-300">
-    
-    <div id="splash-screen" class="splash-screen">
-      <h1 class="splash-title">MailMate</h1>
-      <div class="splash-logo">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="20" height="16" x="2" y="4" rx="2"/>
-          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-        </svg>
-      </div>
+    .animate-cursor {
+      animation: blink 1s step-end infinite;
+    }
+
+    /* Splash */
+
+    .splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #4c1d95 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+
+    .splash-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: zoomFade 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      margin-bottom: 1.5rem;
+    }
+
+    .splash-logo {
+      color: #6366f1;
+      opacity: 0;
+      animation: lensEffect 1.5s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+    }
+
+    .splash-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    @keyframes zoomFade {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes lensEffect {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+        filter: blur(10px);
+      }
+
+      60% {
+        opacity: 1;
+        transform: scale(1.2);
+        filter: blur(0px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+  </style>
+</head>
+
+<body
+  class="font-sans bg-[#f8fafc] dark:bg-[#050810] text-slate-900 dark:text-slate-200 overflow-hidden transition-colors duration-300">
+
+  <div id="splash-screen" class="splash-screen">
+    <h1 class="splash-title">MailMate</h1>
+    <div class="splash-logo">
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      </svg>
     </div>
+  </div>
+
+  <div id="root"></div>
+  <!-- 📧 EMAILJS SDK (OTP Bhejne ke liye) -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function () {
+      // Yahan apni Public Key dalein jo Step 1 me mili thi
+      emailjs.init("zWeNGMRR6Fe-kRoY5");
+    })();
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    // Yahan 'fetchSignInMethodsForEmail' add karna zaroori hai 👇
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-pmRqmB3N5Czimd5PzI53ztb-c82yuqQ",
+      authDomain: "mailmate-pro.firebaseapp.com",
+      projectId: "mailmate-pro",
+      storageBucket: "mailmate-pro.firebasestorage.app",
+      messagingSenderId: "1021274776590",
+      appId: "1:1021274776590:web:c3b5d33de7eee836e3085f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.auth = auth;
+    window.db = db;
     
-    <div id="root"></div>
+    // Niche 'fetchSignInMethodsForEmail' ko list mein add kiya hai 👇
+    window.firebaseMethods = {
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+      updateProfile,
+      doc, setDoc, getDoc, updateDoc, collection, addDoc, onSnapshot, query, where, getDocs, 
+      sendPasswordResetEmail, 
+      fetchSignInMethodsForEmail 
+    };
 
-    <script type="text/babel">
-      const { useState, useEffect, useCallback, useRef } = React;
+    console.log("Firebase Connected Successfully! ✅");
+  </script>
 
-      // --- ICONS ---
-      const ICONS = {
-        Mail: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>,
-        Translate: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 6-6m-6 6 6 6"/><path d="m14 4 6 6m-6-6 6 6"/><path d="M19 10h-5a2 2 0 0 0-2 2v5"/><path d="M14 20v-5a2 2 0 0 0-2-2H4"/></svg>,
-        Sparkles: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9a6 6 0 0 0-9-9Z"/><path d="M6 3v4"/><path d="M3 6h4"/><path d="M18 17v4"/><path d="M21 20h-4"/><path d="m3 21 1.6-1.6"/><path d="m21 3-1.6 1.6"/></svg>,
-        Menu: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
-        X: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
-        Check: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-        Copy: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>,
-        Loader: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
-        ChevronRight: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
-        Sun: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
-        Moon: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9a6 6 0 0 0-9-9Z"/></svg>,
-        Trash: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
-        More: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>,
-        Edit: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>,
-        Mic: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>,
-        Download: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>,
-        Users: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-        Plus: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
-        Minus: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>,
-        ChevronDown: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+
+    // --- ICONS ---
+    const ICONS = {
+      Mail: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>,
+      Translate: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 6-6m-6 6 6 6" /><path d="m14 4 6 6m-6-6 6 6" /><path d="M19 10h-5a2 2 0 0 0-2 2v5" /><path d="M14 20v-5a2 2 0 0 0-2-2H4" /></svg>,
+      Sparkles: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9a6 6 0 0 0-9-9Z" /><path d="M6 3v4" /><path d="M3 6h4" /><path d="M18 17v4" /><path d="M21 20h-4" /><path d="m3 21 1.6-1.6" /><path d="m21 3-1.6 1.6" /></svg>,
+      Menu: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>,
+      X: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>,
+      Check: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
+      Copy: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>,
+      Loader: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>,
+      ChevronRight: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>,
+      Sun: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>,
+      Moon: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9a6 6 0 0 0-9-9Z" /></svg>,
+      Trash: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>,
+      More: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>,
+      Edit: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>,
+      Mic: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></svg>,
+      Download: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>,
+      Users: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
+      Plus: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>,
+      Minus: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /></svg>,
+      ChevronDown: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>,
+    };
+
+    const LANGUAGES = [
+      { code: 'auto', name: 'Auto Detect' }, { code: 'en', name: 'English' }, { code: 'hi', name: 'Hindi' }, { code: 'bn', name: 'Bengali' },
+      { code: 'es', name: 'Spanish' }, { code: 'fr', name: 'French' }, { code: 'de', name: 'German' }, { code: 'zh', name: 'Chinese' },
+      { code: 'ja', name: 'Japanese' }, { code: 'ar', name: 'Arabic' }, { code: 'pt', name: 'Portuguese' }, { code: 'ru', name: 'Russian' },
+    ];
+    // --- SOUNDS LIBRARY ---
+    const SOUNDS = {
+      copy: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3", // Click Sound
+      delete: "https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3", // Trash Sound
+      download: "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3", // Success Chime
+      micOn: "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3", // Blip High
+      micOff: "https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"  // Blip Low
+    };
+
+    // Sound Play karne wala Helper
+    const playSound = (type) => {
+      try {
+        const audio = new Audio(SOUNDS[type]);
+        audio.volume = 0.5; // Aawaz thodi dheemi (50%)
+        audio.play();
+      } catch (e) {
+        console.log("Sound error:", e);
+      }
+    };
+
+    // --- UTILS ---
+    function formatTimeAgo(isoString) {
+      const seconds = Math.floor((new Date() - new Date(isoString)) / 1000);
+      if (seconds > 31536000) return Math.floor(seconds / 31536000) + "y";
+      if (seconds > 86400) return Math.floor(seconds / 86400) + "d";
+      if (seconds > 3600) return Math.floor(seconds / 3600) + "h";
+      if (seconds > 60) return Math.floor(seconds / 60) + "m";
+      return "now";
+    }
+
+    function useLocalStorage(key, initialValue) {
+      const [storedValue, setStoredValue] = useState(() => {
+        try { return JSON.parse(window.localStorage.getItem(key)) || initialValue; } catch { return initialValue; }
+      });
+      const setValue = (value) => {
+        try { const v = value instanceof Function ? value(storedValue) : value; setStoredValue(v); window.localStorage.setItem(key, JSON.stringify(v)); } catch { }
       };
+      return [storedValue, setValue];
+    }
 
-      const LANGUAGES = [
-        { code: 'auto', name: 'Auto Detect' }, { code: 'en', name: 'English' }, { code: 'hi', name: 'Hindi' }, { code: 'bn', name: 'Bengali' },
-        { code: 'es', name: 'Spanish' }, { code: 'fr', name: 'French' }, { code: 'de', name: 'German' }, { code: 'zh', name: 'Chinese' },
-        { code: 'ja', name: 'Japanese' }, { code: 'ar', name: 'Arabic' }, { code: 'pt', name: 'Portuguese' }, { code: 'ru', name: 'Russian' },
-      ];
-      // --- SOUNDS LIBRARY ---
-      const SOUNDS = {
-        copy: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3", // Click Sound
-        delete: "https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3", // Trash Sound
-        download: "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3", // Success Chime
-        micOn: "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3", // Blip High
-        micOff: "https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"  // Blip Low
-      };
+    // --- TOAST NOTIFICATION COMPONENT ---
+    function useCopyToClipboard() {
+      const [isCopied, setIsCopied] = useState(false);
+      const copy = useCallback((text) => {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => { setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); });
+      }, []);
+      return [isCopied, copy];
+    }
 
-      // Sound Play karne wala Helper
-      const playSound = (type) => {
-        try {
-          const audio = new Audio(SOUNDS[type]);
-          audio.volume = 0.5; // Aawaz thodi dheemi (50%)
-          audio.play();
-        } catch (e) {
-          console.log("Sound error:", e);
+    const Toast = ({ message, onClose }) => (
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-pop">
+        <ICONS.Check className="w-5 h-5 text-green-400 dark:text-green-600" />
+        <span className="font-bold text-sm">{message}</span>
+      </div>
+    );
+
+    // --- UI COMPONENTS ---
+    const ThemeToggle = ({ theme, toggleTheme }) => (
+      <button
+        onClick={toggleTheme} className="p-2.5 rounded-full glass text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-700 transition-all shadow-sm active:scale-90"
+        title="Toggle Theme"
+      >
+        {theme === 'light' ? <ICONS.Moon className="w-5 h-5" /> : <ICONS.Sun className="w-5 h-5" />}
+      </button>
+    );
+
+    const FeatureTicker = () => {
+      const features = [
+        "✨ Write professional emails instantly",
+        " Translate text to 12+ languages",
+        "🤖 Humanize robotic text",
+        " Generate smart replies",
+        "✏️ Polish your rough drafts"];
+      const [currentText, setCurrentText] = useState('');
+      const [index, setIndex] = useState(0);
+
+      useEffect(() => {
+        const fullText = features[index];
+        if (currentText.length < fullText.length) {
+          const timeout = setTimeout(() => setCurrentText(fullText.slice(0, currentText.length + 1)), 40);
+          return () => clearTimeout(timeout);
+        } else {
+          const timeout = setTimeout(() => {
+            setIndex((prevIndex) => (prevIndex + 1) % features.length);
+            setCurrentText('');
+          }, 3000);
+          return () => clearTimeout(timeout);
         }
-      };
+      }, [currentText, index]);
 
-      // --- UTILS ---
-      function formatTimeAgo(isoString) {
-        const seconds = Math.floor((new Date() - new Date(isoString)) / 1000);
-        if (seconds > 31536000) return Math.floor(seconds/31536000) + "y";
-        if (seconds > 86400) return Math.floor(seconds/86400) + "d";
-        if (seconds > 3600) return Math.floor(seconds/3600) + "h";
-        if (seconds > 60) return Math.floor(seconds/60) + "m";
-        return "now";
-      }
-
-      function useLocalStorage(key, initialValue) {
-        const [storedValue, setStoredValue] = useState(() => {
-          try { return JSON.parse(window.localStorage.getItem(key)) || initialValue; } catch { return initialValue; }
-        });
-        const setValue = (value) => {
-          try { const v = value instanceof Function ? value(storedValue) : value; setStoredValue(v); window.localStorage.setItem(key, JSON.stringify(v)); } catch {}
-        };
-        return [storedValue, setValue];
-      }
-
-      // --- TOAST NOTIFICATION COMPONENT ---
-       function useCopyToClipboard() {
-        const [isCopied, setIsCopied] = useState(false);
-        const copy = useCallback((text) => {
-          if (!text) return;
-          navigator.clipboard.writeText(text).then(() => { setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); });
-        }, []);
-        return [isCopied, copy];
-      }
-
-      const Toast = ({ message, onClose }) => (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-pop">
-          <ICONS.Check className="w-5 h-5 text-green-400 dark:text-green-600" />
-          <span className="font-bold text-sm">{message}</span>
+      return (
+        <div className="flex justify-center items-center h-16 mb-6 w-full overflow-hidden px-4">
+          <p className="text-center text-xl md:text-2xl font-bold font-heading bg-gradient-to-r from-sky-600 to-purple-600 dark:from-sky-300 dark:to-purple-300 bg-clip-text text-transparent tracking-tight">
+            {currentText}<span className="animate-cursor inline-block w-0.5 h-6 md:h-8 ml-1 bg-sky-500 align-middle"></span>
+          </p>
         </div>
       );
+    };
 
-      // --- UI COMPONENTS ---
-      const ThemeToggle = ({ theme, toggleTheme }) => (
-        <button 
-          onClick={toggleTheme} className="p-2.5 rounded-full glass text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-700 transition-all shadow-sm active:scale-90" 
-          title="Toggle Theme"
-        >
-          {theme === 'light' ? <ICONS.Moon className="w-5 h-5" /> : <ICONS.Sun className="w-5 h-5" />}
-        </button>
-      );
+    // --- ✨ UPGRADED ROYAL BUTTON (Animation + Glow) ---
+    const ToolButton = ({ onClick, disabled, text, loadingText, isLoading }) => (
+      <button
+        onClick={onClick}
+        disabled={disabled || isLoading}
+        className="
+            group relative w-full flex items-center justify-center gap-3 py-4 px-8 rounded-xl 
+            font-bold text-lg text-white overflow-hidden transition-all duration-300 
+            transform hover:-translate-y-1 active:scale-[0.98] 
+            disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0
+            
+            /* 🎨 Royal Gradient Background */
+            bg-gradient-to-r from-indigo-800 via-purple-600 to-pink-700
+            
+            /* 🌟 Neon Glow Shadow */
+            shadow-[0_4px_20px_-5px_rgba(99,102,241,0.5)]
+            hover:shadow-[0_8px_30px_-5px_rgba(99,102,241,0.8)]
+            border border-white/10
+          "
+      >
+        {/* ✨ Shine Effect (Jo hover karne par upar aayega) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-0"></div>
 
-      const FeatureTicker = () => {
-        const features = [
-          "✨ Write professional emails instantly", 
-          " Translate text to 12+ languages", 
-          "🤖 Humanize robotic text", 
-          " Generate smart replies", 
-          "✏️ Polish your rough drafts"];
-        const [currentText, setCurrentText] = useState('');
-        const [index, setIndex] = useState(0);
-        
-        useEffect(() => {
-          const fullText = features[index];
-          if (currentText.length < fullText.length) {
-            const timeout = setTimeout(() => setCurrentText(fullText.slice(0, currentText.length + 1)), 40);
-            return () => clearTimeout(timeout);
-          } else {
-            const timeout = setTimeout(() => { 
-              setIndex((prevIndex) => (prevIndex + 1) % features.length); 
-              setCurrentText(''); 
-            }, 3000);
-            return () => clearTimeout(timeout);
-          }
-        }, [currentText, index]);
-
-        return (
-          <div className="flex justify-center items-center h-16 mb-6 w-full overflow-hidden px-4">
-            <p className="text-center text-xl md:text-2xl font-bold font-heading bg-gradient-to-r from-sky-600 to-purple-600 dark:from-sky-300 dark:to-purple-300 bg-clip-text text-transparent tracking-tight">
-             {currentText}<span className="animate-cursor inline-block w-0.5 h-6 md:h-8 ml-1 bg-sky-500 align-middle"></span>
-            </p>
-          </div>
-        );
-      };
-
-      const ToolButton = ({ onClick, disabled, text, loadingText, isLoading }) => (
-        <button 
-          onClick={onClick} 
-          disabled={disabled || isLoading} 
-          className="group relative w-full flex items-center justify-center gap-3 py-4 px-8 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 hover:from-brand-500 hover:to-brand-300 shadow-[0_10px_40px_-10px_rgba(99,102,241,0.5)] hover:shadow-[0_15px_50px_-10px_rgba(99,102,241,0.7)] focus:ring-4 focus:ring-brand-500/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 overflow-hidden">
+        {/* 📝 Text & Icon Content */}
+        <div className="relative z-10 flex items-center gap-2 drop-shadow-md">
           {isLoading ? (
-            <React.Fragment><ICONS.Loader className="w-6 h-6" /><span>{loadingText}...</span></React.Fragment>
+            <>
+              <ICONS.Loader className="w-6 h-6 text-indigo-100" />
+              <span>{loadingText}...</span>
+            </>
           ) : (
-            <React.Fragment>
-              <span className="relative z-10 tracking-wide">{text}</span>
-              <ICONS.Sparkles className="w-5 h-5 relative z-10 opacity-90 group-hover:rotate-12 transition-transform" />
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-              </React.Fragment>)}
-        </button>
-      );
+            <>
+              <span className="tracking-wide">{text}</span>
+              {/* Animated Star Icon */}
+              <ICONS.Sparkles className="w-5 h-5 text-yellow-200 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300" />
+            </>
+          )}
+        </div>
+      </button>
+    );
 
-// --- UPDATED OUTPUT AREA WITH GROUP SEND ---
-      const OutputArea = ({ text, onChange, onCopy, iscopied, placeholder, isLoading, onDownloadPDF }) => {
-        // Typewriter Effect Logic
-        const [displayedText, setDisplayedText] = useState('');
+// --- 📧 UPDATED OUTPUT AREA (Multi-Group Selection + Deduplication) ---
+const OutputArea = ({ text, onChange, onCopy, iscopied, placeholder, isLoading, onDownloadPDF }) => {
+    // Typewriter Effect Logic
+    const [displayedText, setDisplayedText] = useState('');
+    
+    // UI States
+    const [showGroupMenu, setShowGroupMenu] = useState(false);
+    const [selectedGroupIds, setSelectedGroupIds] = useState([]); // Selected IDs store karne ke liye
+
+    // LocalStorage se groups fetch karna
+    const getGroups = () => {
+        try {
+          return JSON.parse(window.localStorage.getItem('mailmate-groups') || '[]');
+        } catch { return []; }
+    };
+
+    const allGroups = getGroups();
+
+    // 🟢 CHECKBOX TOGGLE LOGIC (Select/Deselect karne ke liye)
+    const toggleGroupSelection = (e, groupId) => {
+        e.stopPropagation(); // Menu band hone se rokne ke liye
+        if (selectedGroupIds.includes(groupId)) {
+            // Agar pehle se select hai, to hata do (Uncheck)
+            setSelectedGroupIds(selectedGroupIds.filter(id => id !== groupId));
+        } else {
+            // Agar select nahi hai, to add karo (Check)
+            setSelectedGroupIds([...selectedGroupIds, groupId]);
+        }
+    };
+
+    // 🚀 SEND LOGIC (Merge + Deduplicate + BCC)
+    const handleSendToSelected = () => {
+        if(!text) { alert("Please generate some text first."); return; }
+        if(selectedGroupIds.length === 0) { alert("Please select at least one group."); return; }
+
+        // 1. Saare selected groups dhundo
+        const selectedGroupsList = allGroups.filter(g => selectedGroupIds.includes(g.id));
+
+        // 2. Saare emails ko ek list me daalo (Flat Array)
+        let allRawEmails = [];
+        selectedGroupsList.forEach(group => {
+            allRawEmails = [...allRawEmails, ...group.emails];
+        });
+
+        // 3. 🔥 MAGIC: Duplicates Remove Karo (Set use karke)
+        // Ye line ensure karegi ki same email do baar na jaye
+        const uniqueEmails = [...new Set(allRawEmails)];
+
+        if(uniqueEmails.length === 0) { alert("Selected groups have no emails!"); return; }
+
+        // 4. Mailto Link Banao (BCC Mode)
+        const recipientString = uniqueEmails.join(',');
+        const body = encodeURIComponent(text);
+        const subject = encodeURIComponent("Draft from MailMate"); 
         
-        // Group Dropdown State
-        const [showGroupMenu, setShowGroupMenu] = useState(false);
+        // Open Mail Client
+        window.open(`mailto:?bcc=${recipientString}&subject=${subject}&body=${body}`, '_blank');
         
-        // LocalStorage se groups fetch karna (Real-time access ke liye)
-        const getGroups = () => {
-           try {
-             return JSON.parse(window.localStorage.getItem('mailmate-groups') || '[]');
-           } catch { return []; }
-        };
+        playSound('download'); // Success Sound
+        setShowGroupMenu(false); // Menu close
+        setSelectedGroupIds([]); // Selection clear
+    };
 
-        const handleSendToGroup = (group) => {
-           if(!text) return;
-           
-           // Emails ko BCC (Blind Carbon Copy) mein daalna privacy ke liye
-           const recipientString = group.emails.join(',');
-           
-           // Body text ko encode karna taaki wo email body mein aa jaye
-           const body = encodeURIComponent(text);
-           const subject = encodeURIComponent("Draft from MailMate"); // Optional Subject
-           
-           // Mailto link open karna
-           window.open(`mailto:?bcc=${recipientString}&subject=${subject}&body=${body}`, '_blank');
-           
-           playSound('download'); // Success Sound
-           setShowGroupMenu(false); // Menu band karna
-        };
+    // Typewriter Effect
+    useEffect(() => {
+        if (!text) { setDisplayedText(''); return; }
+        if (!isLoading && text !== displayedText) {
+            let i = 0;
+            setDisplayedText('');
+            const interval = setInterval(() => {
+            setDisplayedText(text.substring(0, i));
+            i++;
+            if (i > text.length) clearInterval(interval);
+            }, 5);
+            return () => clearInterval(interval);
+        }
+    }, [text, isLoading]);
 
-        useEffect(() => {
-          if (!text) { setDisplayedText(''); return; }
-          if (!isLoading && text !== displayedText) {
-             let i = 0;
-             setDisplayedText(''); 
-             const interval = setInterval(() => {
-               setDisplayedText(text.substring(0, i));
-               i++;
-               if (i > text.length) clearInterval(interval);
-             }, 5); 
-             return () => clearInterval(interval);
-          }
-        }, [text, isLoading]);
-
-        return (
-        <div className="relative w-full h-full min-h-[264px] rounded-2xl overflow-hidden transition-all duration-300 bg-slate-50 border border-slate-200 dark:bg-slate-900/30 dark:border-slate-700 group">
-          {isLoading ? (
-            <div className="absolute inset-0 p-6 flex flex-col gap-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md z-20">
-              <div className="flex items-center gap-3 animate-pulse"><div className="w-8 h-8 rounded-full bg-brand-200 dark:bg-brand-900/50"></div><div className="h-4 w-1/3 bg-gray-200 dark:bg-slate-700 rounded"></div></div>
-              <div className="space-y-3 animate-pulse mt-4"><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-full"></div><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-11/12"></div><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-4/5"></div></div>
-              <div className="mt-auto flex justify-center"><span className="text-xs font-bold text-brand-600 dark:text-brand-300 animate-pulse uppercase tracking-widest">AI IS WRITING...</span></div>
-            </div>
-          ) : (
-            <React.Fragment>
-              <textarea 
-                value={displayedText || text || ''} 
-                onChange={(e) => { setDisplayedText(e.target.value); onChange(e.target.value); }} 
-                placeholder="Result..."
-                rows="9" 
-                className="w-full h-full p-4 pt-10 bg-transparent border-none resize-none text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-0 text-base leading-relaxed font-medium" 
-              />
-              
-              <div className="absolute top-3 right-3 flex gap-2 z-20">
-                 
-                 {/* GROUP SEND BUTTON & DROPDOWN */}
-                 <div className="relative">
+    return (
+    <div className="relative w-full h-full min-h-[264px] rounded-2xl overflow-hidden transition-all duration-300 bg-slate-50 border border-slate-200 dark:bg-slate-900/30 dark:border-slate-700 group">
+        {isLoading ? (
+        <div className="absolute inset-0 p-6 flex flex-col gap-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md z-20">
+            <div className="flex items-center gap-3 animate-pulse"><div className="w-8 h-8 rounded-full bg-brand-200 dark:bg-brand-900/50"></div><div className="h-4 w-1/3 bg-gray-200 dark:bg-slate-700 rounded"></div></div>
+            <div className="space-y-3 animate-pulse mt-4"><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-full"></div><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-11/12"></div><div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-4/5"></div></div>
+            <div className="mt-auto flex justify-center"><span className="text-xs font-bold text-brand-600 dark:text-brand-300 animate-pulse uppercase tracking-widest">AI IS WRITING...</span></div>
+        </div>
+        ) : (
+        <React.Fragment>
+            <textarea 
+            value={displayedText || text || ''} 
+            onChange={(e) => { setDisplayedText(e.target.value); onChange(e.target.value); }} 
+            placeholder="Result..."
+            rows="9" 
+            className="w-full h-full p-4 pt-10 bg-transparent border-none resize-none text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-0 text-base leading-relaxed font-medium" 
+            />
+            
+            <div className="absolute top-3 right-3 flex gap-2 z-20">
+                
+                {/* GROUP SEND BUTTON & DROPDOWN */}
+                <div className="relative">
                     <button 
-                      onClick={() => setShowGroupMenu(!showGroupMenu)} 
-                      className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" 
-                      title="Send to Group"
+                    onClick={() => setShowGroupMenu(!showGroupMenu)} 
+                    className={`p-2 rounded-lg transition-all border border-slate-200 dark:border-slate-700 ${showGroupMenu ? 'bg-brand-100 text-brand-600' : 'bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 text-slate-500'}`}
+                    title="Send to Groups"
                     >
-                      <ICONS.Users className="w-4 h-4" />
+                    <ICONS.Users className="w-4 h-4" />
                     </button>
                     
                     {/* DROPDOWN MENU */}
                     {showGroupMenu && (
-                      <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-pop">
-                        <div className="p-2 border-b border-slate-100 dark:border-slate-700 text-[10px] font-bold uppercase text-slate-400">Select Group</div>
-                        <div className="max-h-40 overflow-y-auto">
-                           {getGroups().length === 0 ? (
-                             <div className="p-3 text-xs text-center text-slate-500">No groups found</div>
-                           ) : (
-                             getGroups().map(g => (
-                               <button 
-                                 key={g.id} 
-                                 onClick={() => handleSendToGroup(g)}
-                                 className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:text-brand-600 transition-colors flex justify-between items-center"
-                               >
-                                 <span>{g.name}</span>
-                                 <span className="text-[10px] opacity-60 bg-slate-200 dark:bg-slate-700 px-1 rounded">{g.count}</span>
-                               </button>
-                             ))
-                           )}
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-pop flex flex-col">
+                        
+                        {/* Header: Kitne select kiye wo dikhayega */}
+                        <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                            <span className="text-[10px] font-bold uppercase text-slate-500">Select Groups</span>
+                            <span className="text-[10px] font-bold text-brand-600">{selectedGroupIds.length} Selected</span>
                         </div>
-                      </div>
-                    )}
-                    {/* Backdrop to close menu */}
-                    {showGroupMenu && <div className="fixed inset-0 z-40" onClick={() => setShowGroupMenu(false)}></div>}
-                 </div>
+                        
+                        {/* Group List with Checkboxes */}
+                        <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
+                            {allGroups.length === 0 ? (
+                                <div className="p-3 text-xs text-center text-slate-500">No groups found</div>
+                            ) : (
+                                allGroups.map(g => {
+                                    const isSelected = selectedGroupIds.includes(g.id);
+                                    return (
+                                        <div 
+                                            key={g.id} 
+                                            onClick={(e) => toggleGroupSelection(e, g.id)}
+                                            className={`w-full px-3 py-2.5 mb-1 text-xs font-medium rounded-lg cursor-pointer transition-all flex justify-between items-center select-none
+                                                ${isSelected 
+                                                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 border border-brand-200 dark:border-brand-800' 
+                                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {/* Custom Checkbox Design */}
+                                                <div className={`w-4 h-4 rounded flex items-center justify-center border ${isSelected ? 'bg-brand-600 border-brand-600' : 'border-slate-300 dark:border-slate-500'}`}>
+                                                    {isSelected && <ICONS.Check className="w-3 h-3 text-white" />}
+                                                </div>
+                                                <span>{g.name}</span>
+                                            </div>
+                                            <span className="text-[9px] opacity-60 bg-white dark:bg-black/20 px-1.5 py-0.5 rounded-full">{g.count}</span>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
 
-                 {/* Single Mail Button */}
-                 <button onClick={() => window.open(`mailto:?body=${encodeURIComponent(text)}`)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Open in Mail App"><ICONS.Mail className="w-4 h-4" /></button>
-                 
-                 {/* PDF Button */}
-                 <button onClick={() => onDownloadPDF(text)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Download PDF"><ICONS.Download className="w-4 h-4" /></button>
-                 
-                 {/* Copy Button */}
-                 <button onClick={() => onCopy(text)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Copy Text"><ICONS.Copy className="w-4 h-4" /></button>
-              </div>
-            </React.Fragment>
-          )}
-        </div>
-      );
-      }
-
-      const LabeledSelect = ({ label, value, onChange, children }) => (
-        <div className="flex flex-col">
-          <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-2 tracking-wider">{label}</label>
-          <select value={value} onChange={onChange} className="py-2.5 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors font-medium">
-            {children}
-          </select>
-        </div>
-      );
-
-      const HistoryItem = ({ item, onClick, onDelete, onRename }) => {
-        let badgeColor, badgeText;
-        switch(item.tool) {
-          case 'compose': badgeColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'; badgeText = 'Polish'; break;
-          case 'translate': badgeColor = 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'; badgeText = 'Translate'; break;
-          case 'humanize': badgeColor = 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'; badgeText = 'Humanize'; break;
-          default: badgeColor = 'bg-gray-100 text-gray-800'; badgeText = 'N/A';
-        }
-        return (
-          <div className="group relative w-full p-3 rounded-xl bg-slate-50 hover:bg-white dark:bg-white/5 dark:hover:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all text-left mb-2 cursor-pointer" onClick={() => onClick(item)}>
-            <div className="flex justify-between items-center mb-1.5">
-              <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md ${badgeColor}`}>{badgeText}</span>
-             {/*three dots menu on hover*/} 
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] text-slate-400 group-hover:hidden">{formatTimeAgo(item.timestamp)}</span>
-                <div className="hidden group-hover:flex items-center gap-1 bg-white dark:bg-slate-800 p-0.5 rounded-md shadow-sm border border-gray-100 dark:border-gray-700 absolute right-2 top-2 z-10">
-                 
-                  <button onClick={(e) => { e.stopPropagation(); onRename(item); }} className="p-1.5 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded" title="Rename">
-                    <ICONS.Edit className="w-3.5 h-3.5" />
-                  </button>
-
-                  <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} className="p-1.5 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded" title="Delete">
-                    <ICONS.Trash className="wa-3.5 h-3.5" />
-                  </button>
-
-                </div>
-                <div className="group-hover:hidden text-slate-400"><ICONS.More className="w-4 h-4" /></div>
-              </div>
-            </div>
-            <p className="text-xs text-slate-700 dark:text-slate-300 truncate font-medium opacity-90 group-hover:opacity-100 pr-4">{item.label || item.original}</p>
-          </div>
-        );
-      };
-
-      // --- FIXED VOICE INPUT COMPONENT ---
-      const VoiceInput = ({ onInput }) => {
-        const [isListening, setIsListening] = useState(false);
-
-        const startListening = () => {
-          // 1. Browser Support Check (Standard + Webkit)
-          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-          if (!SpeechRecognition) {
-            alert("Voice input is not supported in this browser. Please use Google Chrome or Safari.");
-            return;
-          }
-
-          // 2. Play Click Sound (Fix for no sound)
-          playSound('micOn');
-
-          const recognition = new SpeechRecognition();
-          recognition.lang = 'en-US'; // Language
-          recognition.continuous = false; // Mobile friendly: stop after one sentence
-          recognition.interimResults = false;
-
-          recognition.onstart = () => {
-            setIsListening(true);
-          };
-
-          recognition.onend = () => {
-            setIsListening(false);
-          };
-
-          recognition.onresult = (e) => {
-            const transcript = e.results[0][0].transcript;
-            onInput(transcript);
-            playSound('download'); // Success "Ding" sound
-          };
-
-          recognition.onerror = (event) => {
-            console.error("Speech recognition error", event.error);
-            setIsListening(false);
-            playSound('delete'); // Error sound
-            
-            // Mobile Specific Error Handling
-            if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-                alert("Microphone permission blocked! Please allow microphone access in site settings.");
-            } else if (event.error === 'no-speech') {
-                // User ne kuch nahi bola, ignore karein
-            } else {
-                alert("Error: " + event.error);
-            }
-          };
-
-          try {
-            recognition.start();
-          } catch (e) {
-            console.error("Recognition start error:", e);
-          }
-        };
-
-        return (
-          <button 
-            onClick={startListening} 
-            className={`absolute bottom-3 right-3 p-2 rounded-full transition-all ${
-              isListening 
-                ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/50' 
-                : 'bg-slate-100 text-slate-500 hover:bg-brand-50 hover:text-brand-600 dark:bg-slate-800 dark:text-slate-400'
-            }`} 
-            title="Speak"
-          >
-            {isListening ? (
-                // Stop/Recording Icon
-                <div className="w-5 h-5 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-sm animate-bounce"></div>
-                </div>
-            ) : (
-                <ICONS.Mic className="w-5 h-5" />
-            )}
-          </button>
-        );
-      };
-      // --- TOOLS ---
-      const ToolComposer = ({ handleQuickExample, composeInput, setComposeInput, isSmartCompose, setIsSmartCompose, composeTone, setComposeTone, composeLength, setComposeLength, composeOutput, setComposeOutput, handleCopy, handleDownload, handleCompose, isLoading }) => {
-        const outputRef = useRef(null);
-       // --- FIXED SCROLL LOGIC (NAYA CODE) ---
-        useEffect(() => {
-          // Jab output aaye ya loading ho
-          if ((!!composeOutput && composeOutput !== '') || isLoading) {
-             
-             // Check: Kya ye Mobile hai? (1024px se chhota)
-             if (window.innerWidth < 1024) {
-                // Sirf Mobile par scroll karo
-                outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-             }
-             // Agar Laptop (1024px se bada) hai, toh kuch mat karo (No Jump)
-          }
-        }, [composeOutput, isLoading]);
-        return (
-          <div className="space-y-8 transition-all duration-500">
-            <div className="p-6 rounded-2xl glass-card">
-               <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Quick Examples</h3>
-               <div className="flex flex-wrap gap-2">{["leave request for tomorrow", "follow up on payment", "meeting reschedule next week"].map(ex => ( <button key={ex} onClick={() => handleQuickExample(ex)} className="px-3 py-1.5 text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100 rounded-full hover:bg-brand-100 hover:border-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:border-brand-800 dark:hover:bg-brand-900/50 transition-colors">{ex}</button> ))}</div>
-            </div>
-            <div className={`grid gap-8 transition-all duration-500 ${((!!composeOutput && composeOutput !== '') || isLoading) ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
-              <div className="space-y-6">
-                <div className="p-6 rounded-2xl glass-card space-y-4">
-                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">Write Draft</h3>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <select value={composeLength} onChange={(e) => setComposeLength(e.target.value)} className="py-1 px-2 text-xs font-medium rounded-lg bg-slate-100 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:outline-none text-slate-700 dark:text-slate-300">
-                        <option value="Short">Short</option><option value="Medium">Medium</option><option value="Long">Long</option>
-                      </select>
-                      <select value={composeTone} onChange={(e) => setComposeTone(e.target.value)} className="py-1 px-2 text-xs font-medium rounded-lg bg-slate-100 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:outline-none text-slate-700 dark:text-slate-300">
-                        <option>Formal</option><option>Friendly</option><option>Persuasive</option>
-                      </select>
+                        {/* SEND BUTTON (Andar hi de diya taaki easy ho) */}
+                        <div className="p-2 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                            <button 
+                                onClick={handleSendToSelected}
+                                disabled={selectedGroupIds.length === 0}
+                                className="w-full py-2 bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-xs font-bold rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                            >
+                                <ICONS.Mail className="w-3 h-3" /> Send to Selected
+                            </button>
+                        </div>
                     </div>
-                  </div>
-                  <div className="relative">
-                    <textarea value={composeInput} onChange={(e) => setComposeInput(e.target.value)} placeholder="Type topic or speak..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all text-base text-slate-800 dark:text-slate-200 placeholder-slate-400" style={{ minHeight: '264px' }} />
-                    <VoiceInput onInput={(text) => setComposeInput(prev => prev + " " + text)} />
-                  </div>
+                    )}
+                    {/* Backdrop (Menu band karne ke liye) */}
+                    {showGroupMenu && <div className="fixed inset-0 z-40" onClick={() => setShowGroupMenu(false)}></div>}
                 </div>
-                <ToolButton onClick={handleCompose} disabled={!composeInput} text="Create My Email" loadingText="Generating" isLoading={isLoading} />
+
+                {/* Single Mail Button */}
+                <button onClick={() => window.open(`mailto:?body=${encodeURIComponent(text)}`)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Open in Mail App"><ICONS.Mail className="w-4 h-4" /></button>
+                
+                {/* PDF Button */}
+                <button onClick={() => onDownloadPDF(text)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Download PDF"><ICONS.Download className="w-4 h-4" /></button>
+                
+                {/* Copy Button */}
+                <button onClick={() => onCopy(text)} className="p-2 rounded-lg bg-white/80 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 border border-slate-200 dark:border-slate-700 transition-all" title="Copy Text"><ICONS.Copy className="w-4 h-4" /></button>
+            </div>
+        </React.Fragment>
+        )}
+    </div>
+    );
+}
+
+    const LabeledSelect = ({ label, value, onChange, children }) => (
+      <div className="flex flex-col">
+        <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-2 tracking-wider">{label}</label>
+        <select value={value} onChange={onChange} className="py-2.5 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors font-medium">
+          {children}
+        </select>
+      </div>
+    );
+
+    const HistoryItem = ({ item, onClick, onDelete, onRename }) => {
+      let badgeColor, badgeText;
+      switch (item.tool) {
+        case 'compose': badgeColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'; badgeText = 'Polish'; break;
+        case 'translate': badgeColor = 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'; badgeText = 'Translate'; break;
+        case 'humanize': badgeColor = 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'; badgeText = 'Humanize'; break;
+        default: badgeColor = 'bg-gray-100 text-gray-800'; badgeText = 'N/A';
+      }
+      return (
+        <div className="group relative w-full p-3 rounded-xl bg-slate-50 hover:bg-white dark:bg-white/5 dark:hover:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all text-left mb-2 cursor-pointer" onClick={() => onClick(item)}>
+          <div className="flex justify-between items-center mb-1.5">
+            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md ${badgeColor}`}>{badgeText}</span>
+            {/*three dots menu on hover*/}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-slate-400 group-hover:hidden">{formatTimeAgo(item.timestamp)}</span>
+              <div className="hidden group-hover:flex items-center gap-1 bg-white dark:bg-slate-800 p-0.5 rounded-md shadow-sm border border-gray-100 dark:border-gray-700 absolute right-2 top-2 z-10">
+
+                <button onClick={(e) => { e.stopPropagation(); onRename(item); }} className="p-1.5 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded" title="Rename">
+                  <ICONS.Edit className="w-3.5 h-3.5" />
+                </button>
+
+                <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} className="p-1.5 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded" title="Delete">
+                  <ICONS.Trash className="wa-3.5 h-3.5" />
+                </button>
+
               </div>
-              {((!!composeOutput && composeOutput !== '') || isLoading) && (
-                <div ref={outputRef} className="animate-slide-up h-fit">
-                  <div className="glass-card p-1 rounded-2xl">
-                      <div className="bg-slate-50/80 dark:bg-slate-800/40 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-gray-200/50 dark:border-gray-700/50">
-                        <ICONS.Sparkles className="w-4 h-4 text-brand-500" /><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Polished Result</span>
-                      </div>
-                      <OutputArea text={composeOutput} onChange={setComposeOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
-                  </div>
-                </div>
-              )}
+              <div className="group-hover:hidden text-slate-400"><ICONS.More className="w-4 h-4" /></div>
             </div>
           </div>
-        );
-      };
+          <p className="text-xs text-slate-700 dark:text-slate-300 truncate font-medium opacity-90 group-hover:opacity-100 pr-4">{item.label || item.original}</p>
+        </div>
+      );
+    };
 
-      const ToolTranslator = ({ translateFromLang, setTranslateFromLang, translateToLang, setTranslateToLang, translateInput, setTranslateInput, translateOutput, setTranslateOutput, handleCopy, handleDownload, handleTranslate, isLoading }) => {
-        const showOutput = (!!translateOutput && translateOutput !== '') || isLoading;
-        return (
-          <div className="space-y-8">
-            <div className="p-6 rounded-2xl glass-card">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <LabeledSelect label="From" value={translateFromLang} onChange={(e) => setTranslateFromLang(e.target.value)}>{LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</LabeledSelect>
-                <div className="mt-6 text-slate-400"><ICONS.ChevronRight /></div>
-                <LabeledSelect label="To" value={translateToLang} onChange={(e) => setTranslateToLang(e.target.value)}>{LANGUAGES.filter(l => l.code !== 'auto').map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</LabeledSelect>
-              </div>
-            </div>
-            <div className={`grid gap-8 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
-              <div className="space-y-6">
-                <div className="p-6 rounded-2xl glass-card space-y-4">
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">Source Text</h3>
-                  <div className="relative">
-                    <textarea value={translateInput} onChange={(e) => setTranslateInput(e.target.value)} placeholder="Enter text..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200" style={{ minHeight: '264px' }} />
-                    <VoiceInput onInput={(text) => setTranslateInput(prev => prev + " " + text)} />
-                  </div>
-                </div>
-                <ToolButton onClick={handleTranslate} disabled={!translateInput} text="Translate Text" loadingText="Translating" isLoading={isLoading} />
-              </div>
-              {showOutput && (
-                <div className="animate-slide-up h-fit">
-                    <div className="glass-card p-1 rounded-2xl border-purple-200 dark:border-purple-900/30">
-                      <div className="bg-purple-50/40 dark:bg-purple-900/20 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-purple-100 dark:border-purple-900/30"><ICONS.Translate className="w-4 h-4 text-purple-500" /><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Translation</span></div>
-                      <OutputArea text={translateOutput} onChange={setTranslateOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      };
+    // --- FIXED VOICE INPUT COMPONENT ---
+    const VoiceInput = ({ onInput }) => {
+      const [isListening, setIsListening] = useState(false);
 
-      const ToolHumanizer = ({ humanizeTone, setHumanizeTone, humanizeInput, setHumanizeInput, humanizeOutput, setHumanizeOutput, handleCopy, handleDownload, handleHumanize, isLoading }) => {
-        const showOutput = (!!humanizeOutput && humanizeOutput !== '') || isLoading;
-        return (
-          <div className="space-y-8">
-            <div className="p-6 rounded-2xl glass-card">
-              <LabeledSelect label="Select Tone" value={humanizeTone} onChange={(e) => setHumanizeTone(e.target.value)}><option>Professional</option><option>Conversational</option><option>Casual</option></LabeledSelect>
-            </div>
-            <div className={`grid gap-8 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
-              <div className="space-y-6">
-                <div className="p-6 rounded-2xl glass-card space-y-4">
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">AI Text</h3>
-                  <div className="relative">
-                    <textarea value={humanizeInput} onChange={(e) => setHumanizeInput(e.target.value)} placeholder="Paste robotic text..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200" style={{ minHeight: '264px' }} />
-                    <VoiceInput onInput={(text) => setHumanizeInput(prev => prev + " " + text)} />
-                  </div>
-                </div>
-                <ToolButton onClick={handleHumanize} disabled={!humanizeInput} text="Humanize Text" loadingText="Humanizing" isLoading={isLoading} />
-              </div>
-              {showOutput && (
-                <div className="animate-slide-up h-fit">
-                    <div className="glass-card p-1 rounded-2xl border-green-200 dark:border-green-900/30">
-                      <div className="bg-green-50/40 dark:bg-green-900/20 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-green-100 dark:border-green-900/30"><ICONS.Sparkles className="w-4 h-4 text-green-500" /><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Humanized Result</span></div>
-                      <OutputArea text={humanizeOutput} onChange={setHumanizeOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      };
-// --- TOOL: GROUP CONTACTS MANAGER (With Strict Validation) ---
-      const ToolContacts = ({ handleCopy, isLoading }) => {
-        const [groups, setGroups] = useLocalStorage('mailmate-groups', []);
-        
-        const [groupName, setGroupName] = useState('');
-        const [emailList, setEmailList] = useState('');
-        const [showForm, setShowForm] = useState(false);
-        const [expandedGroupId, setExpandedGroupId] = useState(null); 
-        const [newMemberEmail, setNewMemberEmail] = useState(''); 
+      const startListening = () => {
+        // 1. Browser Support Check (Standard + Webkit)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        // --- HELPER: STRICT EMAIL VALIDATOR ---
-        const isValidEmail = (email) => {
-            // Regex: Standard email pattern check
-            const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-            
-            // Check 1: Format Sahi hai?
-            if (!regex.test(email)) return false;
+        if (!SpeechRecognition) {
+          alert("Voice input is not supported in this browser. Please use Google Chrome or Safari.");
+          return;
+        }
 
-            // Check 2: Common Typos (Optional but smart)
-            const domain = email.split('@')[1];
-            if (domain === 'gmil.com' || domain === 'gmal.com') return false; // Common typo blocking
-            
-            return true;
+        // 2. Play Click Sound (Fix for no sound)
+        playSound('micOn');
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US'; // Language
+        recognition.continuous = false; // Mobile friendly: stop after one sentence
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          setIsListening(true);
         };
 
-        // --- 1. Create Group Logic ---
-        const handleCreateGroup = () => {
-          if (!groupName || !emailList) { alert("Please enter details"); return; }
-          
-          const rawEmails = emailList.split(/[\n,;]+/).map(e => e.trim());
-          
-          // Filter: Sirf Valid Emails hi lenge
-          const validEmails = rawEmails.filter(e => isValidEmail(e));
-          const invalidCount = rawEmails.length - validEmails.length;
+        recognition.onend = () => {
+          setIsListening(false);
+        };
 
-          if(validEmails.length === 0) { 
-              alert("❌ No valid emails found! Check spelling (e.g. name@domain.com)"); 
-              return; 
+        recognition.onresult = (e) => {
+          const transcript = e.results[0][0].transcript;
+          onInput(transcript);
+          playSound('download'); // Success "Ding" sound
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error", event.error);
+          setIsListening(false);
+          playSound('delete'); // Error sound
+
+          // Mobile Specific Error Handling
+          if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+            alert("Microphone permission blocked! Please allow microphone access in site settings.");
+          } else if (event.error === 'no-speech') {
+            // User ne kuch nahi bola, ignore karein
+          } else {
+            alert("Error: " + event.error);
           }
-
-          // Duplicates Hatana
-          const uniqueEmails = [...new Set(validEmails)];
-
-          // Report dena
-          let msg = `✅ Group Created with ${uniqueEmails.length} emails.`;
-          if (invalidCount > 0) msg += `\n⚠️ ${invalidCount} invalid emails were rejected.`;
-          alert(msg);
-
-          const newGroup = { 
-              id: Date.now(), 
-              name: groupName, 
-              emails: uniqueEmails, 
-              count: uniqueEmails.length 
-          };
-          
-          setGroups([newGroup, ...groups]);
-          setGroupName(''); setEmailList(''); setShowForm(false);
-          playSound('download');
         };
 
-        const deleteGroup = (id) => {
-           if(confirm("Are you sure you want to delete this group?")) {
-             setGroups(groups.filter(g => g.id !== id));
-             playSound('delete');
-           }
-        };
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error("Recognition start error:", e);
+        }
+      };
 
-        // --- 2. Single Member Add Logic ---
-        const addMemberToGroup = (groupId) => {
-            // Pehle VALIDATION check karein
-            if (!isValidEmail(newMemberEmail)) { 
-                alert("🚫 Invalid Email Address!\nMake sure it has '@' and a domain like '.com'"); 
-                playSound('delete'); // Error sound
-                return; 
-            }
+      return (
+        <button
+          onClick={startListening}
+          className={`absolute bottom-3 right-3 p-2 rounded-full transition-all ${isListening
+            ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/50'
+            : 'bg-slate-100 text-slate-500 hover:bg-brand-50 hover:text-brand-600 dark:bg-slate-800 dark:text-slate-400'
+            }`}
+          title="Speak"
+        >
+          {isListening ? (
+            // Stop/Recording Icon
+            <div className="w-5 h-5 flex items-center justify-center">
+              <div className="w-2 h-2 bg-white rounded-sm animate-bounce"></div>
+            </div>
+          ) : (
+            <ICONS.Mic className="w-5 h-5" />
+          )}
+        </button>
+      );
+    };
+// --- 📧 TOOL COMPOSER (WITH REPLY MODE + SMART TEMPLATES) ---
+const ToolComposer = ({ handleQuickExample, composeInput, setComposeInput, isSmartCompose, setIsSmartCompose, composeTone, setComposeTone, composeLength, setComposeLength, composeOutput, setComposeOutput, handleCopy, handleDownload, handleCompose, isLoading }) => {
+  const outputRef = useRef(null);
+  
+  // State for Reply Mode
+  const [isReplyMode, setIsReplyMode] = useState(false);
+  const [incomingEmail, setIncomingEmail] = useState('');
+
+  // Scroll logic
+  useEffect(() => {
+    if ((!!composeOutput && composeOutput !== '') || isLoading) {
+      if (window.innerWidth < 1024) { outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+  }, [composeOutput, isLoading]);
+
+  // Template Click Handler
+  const applyTemplate = (text) => {
+      setComposeInput(text);
+      playSound('micOn'); // Click sound
+  };
+
+  return (
+    <div className="space-y-8 transition-all duration-500">
+      
+      {/* 🔘 TOGGLE SWITCH */}
+      <div className="flex justify-center">
+          <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-xl inline-flex shadow-inner">
+              <button onClick={() => setIsReplyMode(false)} className={`px-5 py-2.5 text-xs font-bold rounded-lg transition-all ${!isReplyMode ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}>New Email</button>
+              <button onClick={() => setIsReplyMode(true)} className={`px-5 py-2.5 text-xs font-bold rounded-lg transition-all ${isReplyMode ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}>Reply to Email</button>
+          </div>
+      </div>
+
+      {/* ✨ SMART TEMPLATES SECTION (New Added) */}
+      {!isReplyMode && (
+        <div className="p-5 rounded-2xl glass-card border border-brand-100 dark:border-brand-900/30">
+            <div className="flex justify-between items-center mb-3">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Smart Templates</h3>
+                <span className="text-[10px] bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300 px-2 py-0.5 rounded-full font-bold">Tap to Use</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+                <button onClick={() => applyTemplate("Write a sick leave email for [Date] due to [Reason]. Keep it professional.")} 
+                    className="px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-brand-400 hover:text-brand-600 hover:shadow-sm transition-all flex items-center gap-2">
+                    🤒 Sick Leave
+                </button>
+                <button onClick={() => applyTemplate("Follow up on invoice #[Number]. Politely ask for an update on payment.")} 
+                    className="px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-brand-400 hover:text-brand-600 hover:shadow-sm transition-all flex items-center gap-2">
+                    💰 Payment Follow-up
+                </button>
+                <button onClick={() => applyTemplate("Resignation letter. Reason: [Better Opportunity]. Last working day: [Date].")} 
+                    className="px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-brand-400 hover:text-brand-600 hover:shadow-sm transition-all flex items-center gap-2">
+                    👋 Resignation
+                </button>
+                <button onClick={() => applyTemplate("Cold email for [Service Name]. Highlight benefits like [Benefit 1] and [Benefit 2].")} 
+                    className="px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-brand-400 hover:text-brand-600 hover:shadow-sm transition-all flex items-center gap-2">
+                    🚀 Cold Outreach
+                </button>
+            </div>
+        </div>
+      )}
+
+      <div className={`grid gap-8 transition-all duration-500 ${((!!composeOutput && composeOutput !== '') || isLoading) ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
+        <div className="space-y-6">
+          <div className="p-6 rounded-2xl glass-card space-y-4">
             
-            const updatedGroups = groups.map(g => {
-                if(g.id === groupId) {
-                    if(g.emails.includes(newMemberEmail)) {
-                        alert("⚠️ This email is already in the group!");
-                        return g; 
-                    }
-                    return { ...g, emails: [...g.emails, newMemberEmail], count: g.emails.length + 1 };
-                }
-                return g;
-            });
-            
-            setGroups(updatedGroups);
-            setNewMemberEmail(''); 
-            playSound('micOn');
-        };
-
-        const removeMemberFromGroup = (groupId, emailToRemove) => {
-            const updatedGroups = groups.map(g => {
-                if(g.id === groupId) {
-                    const newEmails = g.emails.filter(e => e !== emailToRemove);
-                    return { ...g, emails: newEmails, count: newEmails.length };
-                }
-                return g;
-            });
-            setGroups(updatedGroups);
-            playSound('delete');
-        };
-
-        const sendToGroup = (group) => {
-           const recipientString = group.emails.join(',');
-           window.open(`mailto:?bcc=${recipientString}`, '_blank');
-           playSound('micOn');
-        };
-
-        return (
-          <div className="space-y-6 max-w-4xl mx-auto animate-slide-up">
-            
-            {/* Header */}
-            <div className="flex justify-between items-center p-6 rounded-2xl glass-card">
-               <div>
-                 <h2 className="text-xl font-bold text-slate-800 dark:text-white">Contact Groups</h2>
-                 <p className="text-sm text-slate-500">Only valid emails will be added.</p>
-               </div>
-               <button onClick={() => setShowForm(!showForm)} className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg transition-all flex items-center gap-2">
-                 {showForm ? <ICONS.X className="w-5 h-5"/> : <ICONS.Plus className="w-5 h-5"/>}
-                 {showForm ? 'Cancel' : 'New Group'}
-               </button>
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">{isReplyMode ? "Generate Reply" : "Write Draft"}</h3>
+              <div className="flex flex-wrap items-center gap-3">
+                <select value={composeLength} onChange={(e) => setComposeLength(e.target.value)} className="py-1 px-2 text-xs font-medium rounded-lg bg-slate-100 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:outline-none text-slate-700 dark:text-slate-300">
+                  <option value="Short">Short</option><option value="Medium">Medium</option><option value="Long">Long</option>
+                </select>
+                <select value={composeTone} onChange={(e) => setComposeTone(e.target.value)} className="py-1 px-2 text-xs font-medium rounded-lg bg-slate-100 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:outline-none text-slate-700 dark:text-slate-300">
+                  <option>Formal</option><option>Friendly</option><option>Persuasive</option><option>Angry/Strict</option>
+                </select>
+              </div>
             </div>
 
-            {/* Create Form */}
-            {showForm && (
-              <div className="p-6 rounded-2xl bg-white border border-brand-200 dark:bg-slate-800 dark:border-brand-900 animate-pop shadow-xl">
-                 <div className="space-y-4">
-                    <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="Group Name (e.g. Sales Team)" className="w-full p-3 rounded-lg border dark:bg-slate-900 dark:border-slate-700 dark:text-white outline-none" />
-                    <textarea value={emailList} onChange={(e) => setEmailList(e.target.value)} placeholder="Paste emails here (separated by commas or new lines)..." rows="3" className="w-full p-3 rounded-lg border dark:bg-slate-900 dark:border-slate-700 dark:text-white outline-none" />
-                    <button onClick={handleCreateGroup} className="w-full py-3 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Save Valid Emails</button>
-                 </div>
-              </div>
+            {/* 📥 INCOMING EMAIL BOX */}
+            {isReplyMode && (
+                <div className="animate-slide-up">
+                    <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">Paste the email you received:</label>
+                    <textarea value={incomingEmail} onChange={(e) => setIncomingEmail(e.target.value)} placeholder="Paste original email here..." className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-brand-500 h-24 mb-2 dark:text-white" />
+                </div>
             )}
 
-            {/* Groups List */}
-            <div className="grid grid-cols-1 gap-4">
-              {groups.length === 0 ? (
-                <div className="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">No groups found.</div>
-              ) : (
-                groups.map(group => (
-                  <div key={group.id} className={`group relative p-5 rounded-xl bg-white dark:bg-slate-800/50 border transition-all ${expandedGroupId === group.id ? 'border-brand-500 ring-1 ring-brand-500/20' : 'border-slate-200 dark:border-slate-700'}`}>
-                     
-                     {/* Group Header Row */}
-                     <div className="flex justify-between items-center cursor-pointer" onClick={() => setExpandedGroupId(expandedGroupId === group.id ? null : group.id)}>
-                        <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-brand-600 dark:text-brand-300 font-bold text-lg">
-                             {group.name[0].toUpperCase()}
-                           </div>
-                           <div>
-                             <h3 className="font-bold text-lg text-slate-800 dark:text-white">{group.name}</h3>
-                             <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                                <span>{group.count} Members</span>
-                                {expandedGroupId === group.id ? <ICONS.ChevronDown className="w-3 h-3 rotate-180 transition-transform"/> : <ICONS.ChevronDown className="w-3 h-3 transition-transform"/>}
-                             </div>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button onClick={(e) => { e.stopPropagation(); sendToGroup(group); }} className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-90">
-                                <ICONS.Mail className="w-4 h-4" /> Send
-                            </button>
-                            <button onClick={(e) => { e.stopPropagation(); deleteGroup(group.id); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
-                                <ICONS.Trash className="w-4 h-4" />
-                            </button>
-                        </div>
-                     </div>
+            <div className="relative">
+              <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">{isReplyMode ? "What is your answer?" : "Topic / Instructions"}</label>
+              <textarea value={composeInput} onChange={(e) => setComposeInput(e.target.value)} placeholder={isReplyMode ? "Ex: Say yes to the meeting but ask to change time..." : "Ex: Type topic manually or pick a template above..."} className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all text-base text-slate-800 dark:text-slate-200 placeholder-slate-400" style={{ minHeight: isReplyMode ? '120px' : '200px' }} />
+              <VoiceInput onInput={(text) => setComposeInput(prev => prev + " " + text)} />
+            </div>
+          </div>
+          
+          <ToolButton onClick={() => { 
+                if(isReplyMode && incomingEmail) {
+                    const prompt = `Context: I received this email: "${incomingEmail}". \n\nTask: Write a reply. \n\nMy Instruction: ${composeInput} \n\nTone: ${composeTone} \nLength: ${composeLength}`;
+                    handleCompose(prompt); 
+                } else {
+                    handleCompose(null); 
+                }
+            }} 
+            disabled={!composeInput} 
+            text={isReplyMode ? "Generate Smart Reply" : "Create My Email"} 
+            loadingText="Writing" 
+            isLoading={isLoading} 
+          />
+        </div>
+        
+        {((!!composeOutput && composeOutput !== '') || isLoading) && (
+          <div ref={outputRef} className="animate-slide-up h-fit">
+            <div className="glass-card p-1 rounded-2xl">
+                <div className="bg-slate-50/80 dark:bg-slate-800/40 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-gray-200/50 dark:border-gray-700/50">
+                  <ICONS.Sparkles className="w-4 h-4 text-brand-500" /><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Polished Result</span>
+                </div>
+                <OutputArea text={composeOutput} onChange={setComposeOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+    const ToolTranslator = ({ translateFromLang, setTranslateFromLang, translateToLang, setTranslateToLang, translateInput, setTranslateInput, translateOutput, setTranslateOutput, handleCopy, handleDownload, handleTranslate, isLoading }) => {
+      const showOutput = (!!translateOutput && translateOutput !== '') || isLoading;
+      return (
+        <div className="space-y-8">
+          <div className="p-6 rounded-2xl glass-card">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <LabeledSelect label="From" value={translateFromLang} onChange={(e) => setTranslateFromLang(e.target.value)}>{LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</LabeledSelect>
+              <div className="mt-6 text-slate-400"><ICONS.ChevronRight /></div>
+              <LabeledSelect label="To" value={translateToLang} onChange={(e) => setTranslateToLang(e.target.value)}>{LANGUAGES.filter(l => l.code !== 'auto').map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</LabeledSelect>
+            </div>
+          </div>
+          <div className={`grid gap-8 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
+            <div className="space-y-6">
+              <div className="p-6 rounded-2xl glass-card space-y-4">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white">Source Text</h3>
+                <div className="relative">
+                  <textarea value={translateInput} onChange={(e) => setTranslateInput(e.target.value)} placeholder="Enter text..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200" style={{ minHeight: '264px' }} />
+                  <VoiceInput onInput={(text) => setTranslateInput(prev => prev + " " + text)} />
+                </div>
+              </div>
+              <ToolButton onClick={handleTranslate} disabled={!translateInput} text="Translate Text" loadingText="Translating" isLoading={isLoading} />
+            </div>
+            {showOutput && (
+              <div className="animate-slide-up h-fit">
+                <div className="glass-card p-1 rounded-2xl border-purple-200 dark:border-purple-900/30">
+                  <div className="bg-purple-50/40 dark:bg-purple-900/20 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-purple-100 dark:border-purple-900/30"><ICONS.Translate className="w-4 h-4 text-purple-500" />
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Translation</span></div>
+                  <OutputArea text={translateOutput} onChange={setTranslateOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+// --- 🤖 TOOL HUMANIZER (WITH MOOD FIXER) ---
+const ToolHumanizer = ({ humanizeTone, setHumanizeTone, humanizeInput, setHumanizeInput, humanizeOutput, setHumanizeOutput, handleCopy, handleDownload, handleHumanize, isLoading }) => {
+  const showOutput = (!!humanizeOutput && humanizeOutput !== '') || isLoading;
+  
+  return (
+    <div className="space-y-8">
+      <div className="p-6 rounded-2xl glass-card">
+        {/* 👇 YAHAN CHANGE KIYA HAI: Mood Fixer Option Add Kiya */}
+        <LabeledSelect label="Select Goal / Tone" value={humanizeTone} onChange={(e) => setHumanizeTone(e.target.value)}>
+            <option>Professional</option>
+            <option>Conversational</option>
+            <option>Casual</option>
+            <option>Empathic / Soft</option>
+            <option value="Fix Angry & Rude Mood 😡➡️😊">Fix Angry & Rude Mood 😡➡️😊</option>
+        </LabeledSelect>
+      </div>
 
-                     {/* Expanded View (Members List) */}
-                     {expandedGroupId === group.id && (
-                        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 animate-slide-up">
-                            
-                            {/* Add New Member Input */}
-                            <div className="flex gap-2 mb-4">
-                                <input 
-                                    type="email" 
-                                    value={newMemberEmail}
-                                    onChange={(e) => setNewMemberEmail(e.target.value)}
-                                    placeholder="Add new email address..." 
-                                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:border-brand-500 outline-none"
-                                    onKeyDown={(e) => e.key === 'Enter' && addMemberToGroup(group.id)}
-                                />
-                                <button onClick={() => addMemberToGroup(group.id)} className="px-3 py-2 bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300 rounded-lg font-bold hover:bg-brand-200 transition-colors">
-                                    <ICONS.Plus className="w-5 h-5" />
+      <div className={`grid gap-8 ${showOutput ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'}`}>
+        <div className="space-y-6">
+          <div className="p-6 rounded-2xl glass-card space-y-4">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white">AI Text / Rough Notes</h3>
+            <div className="relative">
+              <textarea value={humanizeInput} onChange={(e) => setHumanizeInput(e.target.value)} placeholder="Paste robotic AI text or angry rough notes here..." className="w-full p-4 rounded-xl bg-white border border-slate-200 dark:bg-black/20 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200 transition-all" style={{ minHeight: '264px' }} />
+              <VoiceInput onInput={(text) => setHumanizeInput(prev => prev + " " + text)} />
+            </div>
+          </div>
+          <ToolButton onClick={handleHumanize} disabled={!humanizeInput} text="Humanize / Fix Text" loadingText="Fixing" isLoading={isLoading} />
+        </div>
+        
+        {showOutput && (
+          <div className="animate-slide-up h-fit">
+              <div className="glass-card p-1 rounded-2xl border-green-200 dark:border-green-900/30">
+                <div className="bg-green-50/40 dark:bg-green-900/20 rounded-xl p-4 mb-0 flex items-center gap-2 border-b border-green-100 dark:border-green-900/30">
+                    <ICONS.Sparkles className="w-4 h-4 text-green-500" /><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Humanized Result</span>
+                </div>
+                <OutputArea text={humanizeOutput} onChange={setHumanizeOutput} onCopy={handleCopy} onDownloadPDF={handleDownload} isLoading={isLoading} />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+// --- ⚡ ADVANCED GROUP MANAGER (Updated for Sync) ---
+const ToolContacts = ({ handleCopy, isLoading }) => {
+    const [groups, setGroups] = useState([]);
+    const [loadingData, setLoadingData] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+    const [expandedGroupId, setExpandedGroupId] = useState(null);
+
+    // Form States
+    const [createInputs, setCreateInputs] = useState([{ id: 1, value: '', valid: null }]);
+    const [groupName, setGroupName] = useState('');
+    const [updateInputs, setUpdateInputs] = useState([{ id: 1, value: '', valid: null }]);
+
+    const userId = window.auth.currentUser ? window.auth.currentUser.uid : null;
+
+    // Fetch Data
+    useEffect(() => {
+        if (!userId) return;
+        const { doc, onSnapshot } = window.firebaseMethods;
+        const unsubscribe = onSnapshot(doc(window.db, "users", userId), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data().groups || [];
+                setGroups(data);
+                // 🔥 IMP: LocalStorage me bhi save kar rahe hain taki OutputArea access kar sake
+                window.localStorage.setItem('mailmate-groups', JSON.stringify(data));
+            }
+            setLoadingData(false);
+        }, (err) => { console.error(err); setLoadingData(false); });
+        return () => unsubscribe();
+    }, [userId]);
+
+    // Save Logic
+    const saveToDB = async (newGroupsList) => {
+        setGroups(newGroupsList);
+        // 🔥 LocalStorage Update Immediate
+        window.localStorage.setItem('mailmate-groups', JSON.stringify(newGroupsList));
+        
+        if (!userId) return;
+        try {
+            const { doc, setDoc } = window.firebaseMethods;
+            await setDoc(doc(window.db, "users", userId), { groups: newGroupsList }, { merge: true });
+        } catch (e) { alert("Error saving to cloud."); }
+    };
+
+    const isValidEmail = (email) => {
+        const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        return regex.test(email) && !email.includes('gmil.com') && !email.includes('gmal.com');
+    };
+
+    // Generic Handlers
+    const handleDynamicChange = (id, value, list, setList) => {
+        const newInputs = list.map(input => {
+            if (input.id === id) {
+                const isValid = value.length > 0 ? isValidEmail(value) : null;
+                return { ...input, value, valid: isValid };
+            }
+            return input;
+        });
+        setList(newInputs);
+    };
+
+    const handleDynamicKeyDown = (e, id, list, setList) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const currentInput = list.find(i => i.id === id);
+            if (currentInput && currentInput.valid) {
+                setList([...list, { id: Date.now(), value: '', valid: null }]);
+                playSound('micOn');
+            } else {
+                playSound('delete');
+            }
+        }
+    };
+
+    const removeDynamicInput = (id, list, setList) => {
+        if (list.length === 1) return;
+        setList(list.filter(i => i.id !== id));
+    };
+
+    // Create Group
+    const handleCreateGroup = () => {
+        if (!groupName) { alert("Please enter a group name"); return; }
+        const isDuplicateName = groups.some(g => g.name.toLowerCase() === groupName.trim().toLowerCase());
+
+        if (isDuplicateName) {
+            alert(`⚠️ A group named "${groupName}" already exists!\nPlease choose a different name.`);
+            return; // Yahin ruk jao, aage mat badho
+        }
+        const validEmails = createInputs.filter(i => i.valid === true).map(i => i.value.toLowerCase().trim());
+        if (validEmails.length === 0) { alert("Add at least one valid email!"); return; }
+        
+        const uniqueEmails = [...new Set(validEmails)];
+        if (validEmails.length > uniqueEmails.length) {
+            alert(`⚠️ Found & Removed ${validEmails.length - uniqueEmails.length} duplicate emails!`);
+        }
+
+        const newGroup = { id: Date.now(), name: groupName, emails: uniqueEmails, count: uniqueEmails.length };
+        saveToDB([newGroup, ...groups]);
+        
+        setGroupName('');
+        setCreateInputs([{ id: Date.now(), value: '', valid: null }]);
+        setShowForm(false);
+        playSound('download');
+    };
+
+    // Update Group
+    const handleUpdateGroup = (groupId) => {
+        const currentGroup = groups.find(g => g.id === groupId);
+        if(!currentGroup) return;
+
+        const newEmails = updateInputs.filter(i => i.valid === true).map(i => i.value.toLowerCase().trim());
+        if (newEmails.length === 0) { alert("Please enter at least one valid new email."); return; }
+
+        const allEmails = [...currentGroup.emails, ...newEmails];
+        const uniqueEmails = [...new Set(allEmails)]; // Deduplicate Logic
+        
+        const updatedGroup = { ...currentGroup, emails: uniqueEmails, count: uniqueEmails.length };
+        const updatedList = groups.map(g => g.id === groupId ? updatedGroup : g);
+        saveToDB(updatedList);
+
+        setUpdateInputs([{ id: Date.now(), value: '', valid: null }]);
+        playSound('download');
+    };
+
+    const deleteGroup = (id) => { if(confirm("Delete group?")) { saveToDB(groups.filter(g => g.id !== id)); playSound('delete'); } };
+    
+    const removeMemberFromGroup = (groupId, email) => {
+        const updatedGroups = groups.map(g => (g.id === groupId ? { ...g, emails: g.emails.filter(e => e !== email), count: g.emails.length - 1 } : g));
+        saveToDB(updatedGroups); playSound('delete');
+    };
+
+    const sendToGroup = (group) => { window.open(`mailto:?bcc=${group.emails.join(',')}`, '_blank'); playSound('micOn'); };
+
+    return (
+        <div className="space-y-6 max-w-4xl mx-auto animate-slide-up pb-20">
+            <div className="flex justify-between items-center p-6 rounded-2xl glass-card">
+                <div><h2 className="text-xl font-bold text-slate-800 dark:text-white">Contact Groups</h2><p className="text-sm text-slate-500">Synced securely with cloud ☁️</p></div>
+                <button onClick={() => setShowForm(true)} className="px-5 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 text-white rounded-xl font-bold shadow-lg flex items-center gap-2 hover:-translate-y-1 transition-all"><ICONS.Plus className="w-5 h-5"/> New Group</button>
+            </div>
+            
+            {showForm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowForm(false)}>
+                    <div className="w-full max-w-lg p-8 rounded-3xl bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-900 animate-pop shadow-2xl relative max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                        <button onClick={() => setShowForm(false)} className="absolute top-5 right-5 text-slate-400 hover:text-red-500"><ICONS.X className="w-6 h-6"/></button>
+                        <h3 className="text-2xl font-bold mb-6 text-slate-800 dark:text-white font-heading">New Contact Group</h3>
+                        <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
+                            <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Group Name</label><input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Sales Team" className="w-full p-3.5 rounded-xl border bg-slate-50 dark:bg-slate-900/50 dark:border-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 font-bold" /></div>
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex justify-between"><span>Add Members</span></label>
+                                <div className="space-y-3">
+                                    {createInputs.map((input, index) => (
+                                        <div key={input.id} className="relative animate-slide-up flex items-center gap-2">
+                                            <div className="relative flex-1">
+                                                <input type="email" autoFocus={index === createInputs.length - 1} value={input.value} 
+                                                    onChange={(e) => handleDynamicChange(input.id, e.target.value, createInputs, setCreateInputs)} 
+                                                    onKeyDown={(e) => handleDynamicKeyDown(e, input.id, createInputs, setCreateInputs)}
+                                                    placeholder="Enter email..." 
+                                                    className={`w-full p-3 pl-4 pr-10 rounded-xl border outline-none dark:bg-slate-900/50 dark:text-white ${input.valid === true ? 'border-green-500 bg-green-50/50' : input.valid === false ? 'border-red-500 bg-red-50/50' : 'border-slate-200 dark:border-slate-700'}`} 
+                                                />
+                                                <div className="absolute right-3 top-3.5">{input.valid === true && <ICONS.Check className="w-5 h-5 text-green-500" />}{input.valid === false && <ICONS.X className="w-5 h-5 text-red-500" />}</div>
+                                            </div>
+                                            {createInputs.length > 1 && (<button onClick={() => removeDynamicInput(input.id, createInputs, setCreateInputs)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl"><ICONS.Trash className="w-5 h-5"/></button>)}
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => setCreateInputs([...createInputs, {id: Date.now(), value:'', valid:null}])} className="mt-3 text-xs font-bold text-brand-600 hover:underline flex items-center gap-1"><ICONS.Plus className="w-3 h-3"/> Add manually</button>
+                            </div>
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+                            <button onClick={handleCreateGroup} className="w-full py-4 bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:-translate-y-1 transition-all">Create Group</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {loadingData ? <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div></div> : (
+                <div className="grid grid-cols-1 gap-4">
+                    {groups.length === 0 ? (<div className="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">No groups found. Create one!</div>) : (
+                    groups.map(group => (
+                        <div key={group.id} className={`group relative p-5 rounded-xl bg-white dark:bg-slate-800/50 border transition-all ${expandedGroupId === group.id ? 'border-brand-500 ring-1 ring-brand-500/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                            <div className="flex justify-between items-center cursor-pointer" onClick={() => { if (expandedGroupId === group.id) setExpandedGroupId(null); else { setExpandedGroupId(group.id); setUpdateInputs([{ id: Date.now(), value: '', valid: null }]); }}}>
+                                <div className="flex items-center gap-4"><div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-brand-600 dark:text-brand-300 font-bold text-lg">{group.name[0].toUpperCase()}</div><div><h3 className="font-bold text-lg text-slate-800 dark:text-white">{group.name}</h3><div className="flex items-center gap-2 text-xs text-slate-500 font-medium"><span>{group.count} Members</span><ICONS.ChevronDown className={`w-3 h-3 transition-transform ${expandedGroupId === group.id ? 'rotate-180' : ''}`}/></div></div></div>
+                                <div className="flex items-center gap-2"><button onClick={(e) => { e.stopPropagation(); sendToGroup(group); }} className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-90"><ICONS.Mail className="w-4 h-4" /> Send</button><button onClick={(e) => { e.stopPropagation(); deleteGroup(group.id); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><ICONS.Trash className="w-4 h-4" /></button></div>
+                            </div>
+                            {expandedGroupId === group.id && (
+                            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 animate-slide-up">
+                                <div className="mb-6"><h4 className="text-[10px] font-bold uppercase text-slate-400 mb-2 tracking-wider">Current Members</h4><div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">{group.emails.map((email, idx) => (<div key={idx} className="flex justify-between items-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700"><span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate mr-2">{email}</span><button onClick={() => removeMemberFromGroup(group.id, email)} className="text-slate-400 hover:text-red-500 p-1 rounded"><ICONS.Minus className="w-3 h-3" /></button></div>))}</div></div>
+                                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-700">
+                                    <label className="text-[10px] font-bold uppercase text-brand-600 mb-3 block flex justify-between items-center"><span>Add New Members</span><span className="bg-brand-100 text-brand-600 px-2 py-0.5 rounded text-[9px]">Press Enter ⏎</span></label>
+                                    <div className="space-y-3 mb-4">{updateInputs.map((input, index) => (<div key={input.id} className="relative animate-slide-up flex items-center gap-2"><div className="relative flex-1"><input type="email" autoFocus={index === updateInputs.length - 1} value={input.value} onChange={(e) => handleDynamicChange(input.id, e.target.value, updateInputs, setUpdateInputs)} onKeyDown={(e) => handleDynamicKeyDown(e, input.id, updateInputs, setUpdateInputs)} placeholder="Type email & press Enter..." className={`w-full p-2.5 pl-3 pr-8 rounded-lg border text-sm outline-none transition-all dark:bg-slate-800 dark:text-white ${input.valid === true ? 'border-green-500' : input.valid === false ? 'border-red-500' : 'border-slate-200 dark:border-slate-600'}`} /><div className="absolute right-2.5 top-2.5">{input.valid === true && <ICONS.Check className="w-4 h-4 text-green-500" />}{input.valid === false && <ICONS.X className="w-4 h-4 text-red-500" />}</div></div>{updateInputs.length > 1 && (<button onClick={() => removeDynamicInput(input.id, updateInputs, setUpdateInputs)} className="p-2 text-slate-400 hover:text-red-500 rounded-lg"><ICONS.Trash className="w-4 h-4"/></button>)}</div>))}</div>
+                                    <button onClick={() => handleUpdateGroup(group.id)} className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold rounded-xl shadow-lg hover:-translate-y-1 transition-all flex justify-center items-center gap-2"><ICONS.Check className="w-4 h-4"/> Save Changes</button>
+                                </div>
+                            </div>
+                            )}
+                        </div>
+                    )))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// --- 🔐 LOGIN & REGISTER (Duplicate Check + Forgot Password) ---
+const AuthPage = () => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [step, setStep] = useState(1);
+    const [isForgot, setIsForgot] = useState(false); 
+
+    // Form States
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
+
+    // UI States
+    const [showPassword, setShowPassword] = useState(false);
+    const [emailValid, setEmailValid] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    // OTP States
+    const [generatedOtp, setGeneratedOtp] = useState(null);
+    const [enteredOtp, setEnteredOtp] = useState('');
+
+    const handleEmailChange = (e) => {
+        const val = e.target.value;
+        setEmail(val);
+        const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        if (val.length === 0) setEmailValid(null);
+        else setEmailValid(isValid);
+    };
+
+    // 🛑 MAIN LOGIC YAHAN HAI: OTP bhejne se pehle check karna
+    const handleSendOtp = async (e) => {
+        e.preventDefault();
+        setError('');
+        if (!emailValid) { setError("Please enter a valid email first."); return; }
+        if (password.length < 6) { setError("⚠️ Password must be at least 6 characters"); return; }
+
+        setLoading(true);
+
+        try {
+            // 1. Firebase Method Import karo
+            const { fetchSignInMethodsForEmail } = window.firebaseMethods;
+            
+            // 2. Check karo ki kya ye email database mein hai?
+            const methods = await fetchSignInMethodsForEmail(window.auth, email);
+
+            // 3. Agar 'methods' array khali nahi hai, matlab user exist karta hai
+            if (methods && methods.length > 0) {
+                alert("⚠️ Account already exists with this email!\nPlease Log In.");
+                setIsLogin(true); // Login page par bhej do
+                setLoading(false);
+                return; // 🛑 YAHIN RUK JAO, OTP MAT BHEJO
+            }
+
+            // 4. Agar user naya hai, to aage badho aur OTP bhejo
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            setGeneratedOtp(otp);
+
+            // EmailJS se OTP bhejo
+            const templateParams = { to_email: email, to_name: name, otp: otp };
+            emailjs.send('service_4j3gvse', 'template_o8w435b', templateParams)
+                .then(() => { console.log("Email Sent"); }, (err) => { console.error("Email Error", err); });
+
+            // User ko OTP page par le jao
+            setLoading(false);
+            setStep(2); 
+
+        } catch (e) {
+            console.error(e);
+            setError("Something went wrong. Please try again.");
+            setLoading(false);
+        }
+    };
+
+    // Verify OTP & Create Account
+    const handleVerifyAndSignup = async (e) => {
+        e.preventDefault();
+        setLoading(true); setError('');
+        if (enteredOtp !== generatedOtp) { setError("❌ Incorrect OTP!"); setLoading(false); return; }
+
+        const { createUserWithEmailAndPassword, updateProfile, doc, setDoc } = window.firebaseMethods;
+        try {
+            const userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
+            const user = userCredential.user;
+            await updateProfile(user, { displayName: name });
+            await setDoc(doc(window.db, "users", user.uid), {
+                uid: user.uid, name: name, email: email, createdAt: new Date().toISOString(), groups: []
+            });
+            window.location.reload();
+        } catch (err) { setError(err.message); setStep(1); } finally { setLoading(false); }
+    };
+
+    // Login Function
+    const handleLogin = async (e) => {
+        e.preventDefault(); setLoading(true); setError('');
+        const { signInWithEmailAndPassword } = window.firebaseMethods;
+        try { await signInWithEmailAndPassword(window.auth, email, password); }
+        catch (err) { setError("❌ Invalid Email or Password"); }
+        finally { setLoading(false); }
+    };
+
+// 4. FIXED Forgot Password Logic (Simple & Error Free)
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        if (!emailValid) { setError("Please enter a valid email."); return; }
+        
+        setLoading(true); 
+        setError('');
+
+        const { sendPasswordResetEmail } = window.firebaseMethods;
+        
+        try {
+            // 🛑 Change: Maine actionCodeSettings hata diya hai taaki 
+            // "Domain not allowed" wala error na aaye.
+            // Ab ye simple tareeke se link bhejega.
+
+            await sendPasswordResetEmail(window.auth, email);
+            
+            alert(`✅ Password reset link sent to ${email}.\n\nCheck your INBOX and SPAM folder!`);
+            
+            // Form reset
+            setIsForgot(false);
+            setIsLogin(true);
+
+        } catch (err) {
+            console.error("Reset Error:", err);
+            setError("Error: " + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 dark:bg-[#050810] text-slate-900 dark:text-white transition-colors duration-500">
+
+            <div className="absolute inset-0 bg-gradient-to-br from-[#f0f9ff] via-[#e0e7ff] to-[#f8fafc] dark:from-[#0B1120] dark:via-[#1e1b4b] dark:to-[#0f172a] -z-20"></div>
+            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-400/30 dark:bg-purple-600/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] animate-blob"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-400/30 dark:bg-blue-600/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000"></div>
+
+            <div className="relative z-10 w-full max-w-md p-8 rounded-3xl border border-white/20 dark:border-slate-700 shadow-2xl animate-pop backdrop-blur-2xl bg-white/40 dark:bg-slate-900/40">
+
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 mb-4 shadow-lg shadow-blue-500/30">
+                        <ICONS.Mail className="w-8 h-8 text-white" />
+                    </div>
+                    <h2 className="text-3xl font-bold font-heading tracking-tight">
+                        {isForgot ? "Reset Password" : (step === 2 ? "Verify Email" : (isLogin ? "Welcome Back" : "Join MailMate"))}
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
+                        {isForgot ? "Enter your email to receive a reset link" : (step === 2 ? `OTP sent to ${email}` : (isLogin ? "Sign in to your professional workspace" : "Create an account to get started"))}
+                    </p>
+                </div>
+
+                {error && <div className="mb-4 p-3 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg border border-red-500/20 flex items-center gap-2 animate-pulse"><ICONS.Trash className="w-4 h-4" /> {error}</div>}
+
+                {/* FORGOT PASSWORD FORM */}
+                {isForgot && (
+                    <form onSubmit={handleForgotPassword} className="space-y-5 animate-slide-up">
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email Address</label>
+                            <input type="email" required value={email} onChange={handleEmailChange} className={`w-full p-3.5 pl-4 pr-10 rounded-xl bg-white/60 dark:bg-black/30 border outline-none transition-all placeholder:text-slate-400 ${emailValid === true ? 'border-green-500' : emailValid === false ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`} placeholder="name@work.com" />
+                        </div>
+                        <button type="submit" disabled={loading} className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-lg shadow-lg hover:shadow-blue-500/40 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-70">
+                            {loading ? "Sending Link..." : "Send Reset Link"}
+                        </button>
+                        <button type="button" onClick={() => { setIsForgot(false); setIsLogin(true); setError(''); }} className="w-full text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline">Back to Login</button>
+                    </form>
+                )}
+
+                {/* LOGIN / SIGNUP FORM */}
+                {!isForgot && step === 1 && (
+                    <form onSubmit={isLogin ? handleLogin : handleSendOtp} className="space-y-5 animate-slide-up">
+                        {!isLogin && (
+                            <div className="space-y-1"><label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Full Name</label><input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full p-3.5 rounded-xl bg-white/60 dark:bg-black/30 border border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all placeholder:text-slate-400" placeholder="John Doe" /></div>
+                        )}
+
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email Address</label>
+                            <div className="relative">
+                                <input type="email" required value={email} onChange={handleEmailChange} className={`w-full p-3.5 pl-4 pr-10 rounded-xl bg-white/60 dark:bg-black/30 border outline-none transition-all placeholder:text-slate-400 ${emailValid === true ? 'border-green-500' : emailValid === false ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`} placeholder="name@work.com" />
+                                <div className="absolute right-3.5 top-3.5">
+                                    {emailValid === true && <ICONS.Check className="w-5 h-5 text-green-500" />}
+                                    {emailValid === false && <ICONS.X className="w-5 h-5 text-red-500" />}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Password</label>
+                            <div className="relative">
+                                <input type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3.5 rounded-xl bg-white/60 dark:bg-black/30 border border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all placeholder:text-slate-400" placeholder="••••••••" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-3.5 text-slate-400 hover:text-blue-500 transition-colors">
+                                    {showPassword ? <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg> : <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>}
                                 </button>
                             </div>
-
-                            {/* Members List */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2">
-                                {group.emails.map((email, idx) => (
-                                    <div key={idx} className="flex justify-between items-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700">
-                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate mr-2">{email}</span>
-                                        <button onClick={() => removeMemberFromGroup(group.id, email)} className="text-slate-400 hover:text-red-500 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded" title="Remove member">
-                                            <ICONS.Minus className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                            {isLogin && (
+                                <div className="flex justify-end">
+                                    <button type="button" onClick={() => { setIsForgot(true); setError(''); }} className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline mt-1">Forgot Password?</button>
+                                </div>
+                            )}
                         </div>
-                     )}
-                  </div>
-                ))
-              )}
+
+                        <button type="submit" disabled={loading} className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-lg shadow-lg hover:shadow-blue-500/40 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-70">
+                            {loading ? "Processing..." : (isLogin ? "Sign In" : "Get OTP & Join")}
+                        </button>
+                    </form>
+                )}
+
+                {!isForgot && step === 2 && (
+                    <form onSubmit={handleVerifyAndSignup} className="space-y-6 animate-slide-up">
+                        <div className="flex justify-center"><input type="text" maxLength="6" required value={enteredOtp} onChange={(e) => setEnteredOtp(e.target.value)} className="w-full text-center text-4xl tracking-[0.5em] font-bold p-4 rounded-xl bg-white/60 dark:bg-black/30 border border-slate-200 dark:border-slate-700 focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all" placeholder="••••••" autoFocus /></div>
+                        <button type="submit" disabled={loading} className="w-full py-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg shadow-lg hover:shadow-green-500/40 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-70">{loading ? "Verifying..." : "Verify & Complete"}</button>
+                        <button type="button" onClick={() => setStep(1)} className="w-full text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline">Wrong email? Go back</button>
+                    </form>
+                )}
+
+                <div className="mt-8 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 text-center">
+                    {!isForgot && (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{isLogin ? "Don't have an account?" : "Already have an account?"}<button type="button" onClick={() => setIsLogin(!isLogin)} className="ml-2 font-bold text-blue-600 dark:text-blue-400 hover:underline">{isLogin ? "Create Account" : "Log In"}</button></p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+// --- 📄 PREMIUM FOOTER (Legal + Animated Stats) ---
+const Footer = ({ history }) => {
+    const [legalModal, setLegalModal] = useState(null);
+
+    const LegalContent = {
+        privacy: { title: "Privacy Policy", content: "At MailMate, we value your privacy. We do not store your generated emails on our servers permanently. All processing is done securely via encrypted channels. Your contact groups are stored securely on Firebase and are accessible only by you." },
+        terms: { title: "Terms & Conditions", content: "By using MailMate Pro, you agree to use the AI generation tools responsibly. Do not use this tool for spam, phishing, or generating harmful content. We reserve the right to suspend accounts violating these terms." },
+        about: { title: "About MailMate", content: "MailMate Pro is an advanced AI-powered workspace designed to boost productivity. Built with React, Tailwind, and Google Gemini AI. \n\nVersion: 2.0 Pro \nDeveloper: Your Name" }
+    };
+
+    return (
+        <footer className="mt-20 pt-10 pb-10 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#02040a]">
+            
+            {/* 1. 📊 PREMIUM STATS DASHBOARD (Moved Here) */}
+            <div className="max-w-7xl mx-auto px-4 mb-16">
+                <p className="text-center text-xs font-bold uppercase tracking-widest text-slate-400 mb-8">Your Lifetime Impact</p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Card 1: Emails Crafted (Blue) */}
+                    <div className="relative group p-5 rounded-2xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+                                <ICONS.Mail className="w-6 h-6" />
+                            </div>
+                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">+12%</span>
+                        </div>
+                        <div className="space-y-1 text-left">
+                            <h4 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Total Drafts</h4>
+                            <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-heading">{history.length}</span>
+                        </div>
+                    </div>
+
+                    {/* Card 2: Time Saved (Purple) */}
+                    <div className="relative group p-5 rounded-2xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">Saved</span>
+                        </div>
+                        <div className="space-y-1 text-left">
+                            <h4 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Hours Saved</h4>
+                            <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-heading">{Math.floor((history.length * 5) / 60)}h {(history.length * 5) % 60}m</span>
+                        </div>
+                    </div>
+
+                    {/* Card 3: Value Created (Emerald) */}
+                    <div className="relative group p-5 rounded-2xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">ROI</span>
+                        </div>
+                        <div className="space-y-1 text-left">
+                            <h4 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Value Gen.</h4>
+                            <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-heading">${(history.length * 2.5).toFixed(0)}</span>
+                        </div>
+                    </div>
+
+                    {/* Card 4: Productivity Level (Orange) */}
+                    <div className="relative group p-5 rounded-2xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="p-3 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
+                                <ICONS.Sparkles className="w-6 h-6" />
+                            </div>
+                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">Top 1%</span>
+                        </div>
+                        <div className="space-y-1 text-left">
+                            <h4 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Level</h4>
+                            <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-heading">{history.length > 10 ? 'Elite' : history.length > 3 ? 'Pro' : 'Starter'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. Legal Links & Copyright */}
+            <div className="text-center border-t border-slate-200 dark:border-slate-800/50 pt-8">
+                {/* Modal (Popup) */}
+                {legalModal && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setLegalModal(null)}>
+                        <div className="w-full max-w-lg bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-2xl relative animate-pop text-left" onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setLegalModal(null)} className="absolute top-4 right-4 text-slate-400 hover:text-red-500"><ICONS.X className="w-5 h-5"/></button>
+                            <h3 className="text-2xl font-bold mb-4 text-slate-800 dark:text-white">{LegalContent[legalModal].title}</h3>
+                            <p className="text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed text-sm">{LegalContent[legalModal].content}</p>
+                            <button onClick={() => setLegalModal(null)} className="mt-6 w-full py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-colors">Close</button>
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-4">
+                    <button onClick={() => setLegalModal('about')} className="text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">About Us</button>
+                    <button onClick={() => setLegalModal('privacy')} className="text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Privacy Policy</button>
+                    <button onClick={() => setLegalModal('terms')} className="text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Terms of Service</button>
+                </div>
+                <p className="text-[10px] text-slate-400">© 2025 MailMate Pro. All rights reserved.</p>
+            </div>
+        </footer>
+    );
+};
+    // --- ⚙️ SETTINGS MODAL (Brand Voice) ---
+    const SettingsModal = ({ isOpen, onClose, brandVoice, setBrandVoice }) => {
+      if (!isOpen) return null;
+
+      return (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl relative animate-pop" onClick={e => e.stopPropagation()}>
+            <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-red-500"><ICONS.X className="w-5 h-5" /></button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-brand-100 text-brand-600 rounded-xl"><ICONS.Edit className="w-6 h-6" /></div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">Brand Voice</h3>
+                <p className="text-xs text-slate-500">Personalize how AI writes for you.</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-500 mb-1 block">Your Role / Context</label>
+                <input type="text" placeholder="E.g. Freelance Designer, HR Manager..." className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-500 mb-1 block">Voice Instructions</label>
+                <textarea
+                  value={brandVoice}
+                  onChange={(e) => setBrandVoice(e.target.value)}
+                  placeholder="E.g. I like short sentences. Use emojis. Be very polite."
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 h-32 resize-none"
+                />
+              </div>
+
+              <button onClick={() => { playSound('download'); onClose(); }} className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 transition-all">Save Settings</button>
             </div>
           </div>
-        );
+        </div>
+      );
+    };
+    // --- MAIN APP ---
+    function App() {
+      const [user, setUser] = useState(null);
+      // --- 🆕 SETTINGS STATE ---
+      const [showSettings, setShowSettings] = useState(false);
+      const [brandVoice, setBrandVoice] = useLocalStorage('mailmate-brand-voice', '');
+      const [loadingUser, setLoadingUser] = useState(true);
+
+      // --- 1. Login Check Listener ---
+      useEffect(() => {
+        const { onAuthStateChanged } = window.firebaseMethods;
+        const unsubscribe = onAuthStateChanged(window.auth, (currentUser) => {
+          setUser(currentUser);
+          setLoadingUser(false);
+        });
+        return () => unsubscribe();
+      }, []);
+
+      // --- Logout Function ---
+      const handleLogout = async () => {
+        try { await window.firebaseMethods.signOut(window.auth); } catch (error) { console.error(error); }
       };
 
-      // --- MAIN APP ---
-      function App() {
-        const [currentTool, setCurrentTool] = useState('compose');
-        const [history, setHistory] = useLocalStorage('mailmate-history', []);
-        const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-        const [isLoading, setIsLoading] = useState(false);
-        const [error, setError] = useState(null);
-        const [toastMsg, setToastMsg] = useState(null); // Toast state
+      // --- Existing States ---
+      const [currentTool, setCurrentTool] = useState('compose');
+      const [history, setHistory] = useLocalStorage('mailmate-history', []);
+      const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+      const [isLoading, setIsLoading] = useState(false);
+      const [error, setError] = useState(null);
+      const [toastMsg, setToastMsg] = useState(null);
 
-        const [theme, setTheme] = useState(() => (localStorage.getItem('mailmate-theme') || 'light'));
-        useEffect(() => {
-          if (theme === 'dark') { document.documentElement.classList.add('dark'); document.documentElement.classList.remove('light'); }
-          else { document.documentElement.classList.remove('dark'); document.documentElement.classList.add('light'); }
-          localStorage.setItem('mailmate-theme', theme);
-        }, [theme]);
-        const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+      // --- THEME STATE (System Ignore, Default Dark) ---
+      // Agar localStorage me kuch nahi hai, to 'dark' lo.
+      const [theme, setTheme] = useState(() => (localStorage.getItem('mailmate-theme') || 'dark'));
 
-        useEffect(() => { const splash = document.getElementById('splash-screen'); if(splash) { setTimeout(() => { splash.classList.add('fade-out'); setTimeout(()=>splash.style.display='none',600); }, 2200); } }, []);
+      useEffect(() => {
+        const root = document.documentElement;
+        if (theme === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+        // Jo bhi choose kiya use save kar lo
+        localStorage.setItem('mailmate-theme', theme);
+      }, [theme]);
 
-        // States
-        const [composeInput, setComposeInput] = useState('');
-        const [composeOutput, setComposeOutput] = useState('');
-        const [composeTone, setComposeTone] = useState('Formal');
-        const [composeLength, setComposeLength] = useState('Medium'); // New Length State
-        const [isSmartCompose, setIsSmartCompose] = useState(true);
+      const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-        const [translateInput, setTranslateInput] = useState('');
-        const [translateOutput, setTranslateOutput] = useState('');
-        const [translateFromLang, setTranslateFromLang] = useState('auto');
-        const [translateToLang, setTranslateToLang] = useState('en');
+      // Splash
+      useEffect(() => { const splash = document.getElementById('splash-screen'); if (splash) { setTimeout(() => { splash.classList.add('fade-out'); setTimeout(() => splash.style.display = 'none', 600); }, 2200); } }, []);
 
-        const [humanizeInput, setHumanizeInput] = useState('');
-        const [humanizeOutput, setHumanizeOutput] = useState('');
-        const [humanizeTone, setHumanizeTone] = useState('Professional');
+      // Tool States
+      const [composeInput, setComposeInput] = useState('');
+      const [composeOutput, setComposeOutput] = useState('');
+      const [composeTone, setComposeTone] = useState('Formal');
+      const [composeLength, setComposeLength] = useState('Medium');
+      const [isSmartCompose, setIsSmartCompose] = useState(true);
+      const [translateInput, setTranslateInput] = useState('');
+      const [translateOutput, setTranslateOutput] = useState('');
+      const [translateFromLang, setTranslateFromLang] = useState('auto');
+      const [translateToLang, setTranslateToLang] = useState('en');
+      const [humanizeInput, setHumanizeInput] = useState('');
+      const [humanizeOutput, setHumanizeOutput] = useState('');
+      const [humanizeTone, setHumanizeTone] = useState('Professional');
 
-        // Handlers
-        const showToast = (msg) => { setToastMsg(msg); setTimeout(() => setToastMsg(null), 3000); };
-        
-        // Isme 'playSound' add kiya hai
-        const handleCopy = (text) => {
-          if (!text) return;
-          playSound('copy'); // 🔊 COPY SOUND
-          navigator.clipboard.writeText(text).then(() => showToast("Copied to clipboard!"));
-        };
+      // Handlers
+      const showToast = (msg) => { setToastMsg(msg); setTimeout(() => setToastMsg(null), 3000); };
+      const handleCopy = (text) => { if (!text) return; playSound('copy'); navigator.clipboard.writeText(text).then(() => showToast("Copied!")); };
+      const handleDownloadPDF = (text) => { if (!text) return; playSound('download'); const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(doc.splitTextToSize(text, 180), 10, 10); doc.save("mailmate.pdf"); showToast("PDF Saved!"); };
 
-        // Isme bhi 'playSound' add kiya hai
-        const handleDownloadPDF = (text) => {
-          if (!text) return;
-          playSound('download'); // 🔊 DOWNLOAD SOUND
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF();
-          const splitText = doc.splitTextToSize(text, 180);
-          doc.text(splitText, 10, 10);
-          doc.save("mailmate-result.pdf");
-          showToast("PDF Downloaded!");
-        };;
-        // Naya Feature: Open in Mail App
-        const handleOpenMail = (text) => {
-          if (!text) return;
-          // URL encode karke mailto link banana
-          const subject = "Draft from MailMate";
-          const body = encodeURIComponent(text);
-          window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
-        };
+      const addHistoryItem = (item) => { const newHistory = [item, ...history]; if (newHistory.length > 20) newHistory.pop(); setHistory(newHistory); };
+      const handleHistoryClick = (item) => { setCurrentTool(item.tool); if (item.tool === 'compose') { setComposeInput(item.original); setComposeOutput(item.result); } if (item.tool === 'translate') { setTranslateInput(item.original); setTranslateOutput(item.result); } if (item.tool === 'humanize') { setHumanizeInput(item.original); setHumanizeOutput(item.result); } setIsMobileMenuOpen(false); };
+      const deleteHistoryItem = (id) => { playSound('delete'); setHistory(history.filter(item => item.id !== id)); };
+      const renameHistoryItem = (item) => { const newName = prompt("Rename:", item.label || item.original); if (newName) setHistory(history.map(h => h.id === item.id ? { ...h, label: newName } : h)); };
 
-        const addHistoryItem = (item) => {
-          const newHistory = [item, ...history];
-          if (newHistory.length > 20) newHistory.pop();
-          setHistory(newHistory);
-        };
+      // API Call
+      const handleToolAction = async (tool, input, tone, extra) => {
+        setIsLoading(true);
+        if (tool === 'compose') setComposeOutput(''); if (tool === 'translate') setTranslateOutput(''); if (tool === 'humanize') setHumanizeOutput('');
 
-        const handleHistoryClick = (item) => {
-          setCurrentTool(item.tool);
-          if (item.tool === 'compose') { setComposeInput(item.original); setComposeOutput(item.result); }
-          if (item.tool === 'translate') { setTranslateInput(item.original); setTranslateOutput(item.result); }
-          if (item.tool === 'humanize') { setHumanizeInput(item.original); setHumanizeOutput(item.result); }
-          setIsMobileMenuOpen(false);
-        };
-
-        // Isme 'playSound' add kiya hai
-        const deleteHistoryItem = (id) => {
-            playSound('delete'); // 🔊 DELETE SOUND
-            setHistory(history.filter(item => item.id !== id));
-        };const renameHistoryItem = (item) => { const newName = prompt("Rename item:", item.label || item.original); if (newName) setHistory(history.map(h => h.id === item.id ? { ...h, label: newName } : h)); };
-
-        // API Call
-        const callAIApi = async (systemPrompt, userPrompt) => {
-          setError(null);
+        const callAIApi = async (sys, usr) => {
           try {
-            // Render URL Link
-            const response = await fetch('https://mailmatepro-ai.onrender.com/ask-ai', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ system: systemPrompt, message: userPrompt })
-            });
-            if (!response.ok) throw new Error("Server Error: " + response.status);
-            const result = await response.json();
-            if (result.candidates && result.candidates[0].content) return result.candidates[0].content.parts[0].text;
-            throw new Error("AI ne koi jawab nahi diya.");
-          } catch (err) { console.error(err); setError("Server connection failed."); throw err; }
+            const res = await fetch('https://mailmatepro-ai.onrender.com/ask-ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: sys, message: usr }) });
+            if (!res.ok) throw new Error("Error"); const json = await res.json(); return json.candidates[0].content.parts[0].text;
+          } catch (err) { setError("Server Error"); throw err; }
         };
 
-        const handleToolAction = async (tool, input, tone, extra) => {
-          setIsLoading(true);
-          if (tool === 'compose') setComposeOutput('');
-          if (tool === 'translate') setTranslateOutput('');
-          if (tool === 'humanize') setHumanizeOutput('');
+        let sys = "", usr = "";
 
-          let system = "", user = "";
-          if (tool === 'compose') {
-             system = "You are an AI email assistant. Write a professional email.";
-             // Added Length to Prompt
-             user = `Topic: ${input}\nTone: ${tone}\nLength: ${composeLength}`; 
-          } else if (tool === 'translate') {
-             system = "You are an AI translator.";
-             user = `Translate from ${extra.from} to ${extra.to}: "${input}"`;
-          } else if (tool === 'humanize') {
-             system = "Humanize this text to sound natural.";
-             user = `Text: "${input}"\nTone: ${tone}`;
-          }
+        const voiceInstruction = brandVoice ? `\n\nIMPORTANT: Write in this style/voice: "${brandVoice}"` : "";
 
-          try {
-            const result = await callAIApi(system, user);
-            if (tool === 'compose') setComposeOutput(result);
-            if (tool === 'translate') setTranslateOutput(result);
-            if (tool === 'humanize') setHumanizeOutput(result);
-            addHistoryItem({ id: Date.now(), tool, original: input, label: input, result, timestamp: new Date().toISOString() });
-          } catch (e) {
-             const errMsg = "Error: Please check your connection.";
-             if (tool === 'compose') setComposeOutput(errMsg);
-             if (tool === 'translate') setTranslateOutput(errMsg);
-             if (tool === 'humanize') setHumanizeOutput(errMsg);
-          } finally { setIsLoading(false); }
-        };
+        if (tool === 'compose') {
+          sys = "You are an AI email assistant.";
+          usr = `Topic: ${input}\nTone: ${tone}\nLength: ${composeLength}${voiceInstruction}`;
+        }
+        else if (tool === 'translate') {
+          sys = "You are an AI translator.";
+          usr = `Translate from ${extra.from} to ${extra.to}: "${input}"${voiceInstruction}`;
+        }
+        else if (tool === 'humanize') {
+          sys = "Humanize this text.";
+          usr = `Text: "${input}"\nTone: ${tone}${voiceInstruction}`;
+        }
+        try {
+          const res = await callAIApi(sys, usr);
+          if (tool === 'compose') setComposeOutput(res); if (tool === 'translate') setTranslateOutput(res); if (tool === 'humanize') setHumanizeOutput(res);
+          addHistoryItem({ id: Date.now(), tool, original: input, label: input, result: res, timestamp: new Date().toISOString() });
+        } catch (e) { const err = "Error connecting to server."; if (tool === 'compose') setComposeOutput(err); if (tool === 'translate') setTranslateOutput(err); if (tool === 'humanize') setHumanizeOutput(err); }
+        finally { setIsLoading(false); }
+      };
 
-        const getSidebarClass = (id) => {
-           const base = "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 font-bold text-sm mb-1 ";
-           if (currentTool === id) {
-             if(id === 'compose') return base + "bg-sky-50 text-sky-600 shadow-sm border border-sky-100 dark:bg-sky-900/20 dark:text-white dark:border-sky-800";
-             if(id === 'translate') return base + "bg-purple-50 text-purple-600 shadow-sm border border-purple-100 dark:bg-purple-900/20 dark:text-white dark:border-purple-800";
-             if(id === 'humanize') return base + "bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100 dark:bg-emerald-900/20 dark:text-white dark:border-emerald-800";
-           }
-           return base + "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800/50";
-        };
+      const getSidebarClass = (id) => {
+        const base = "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 font-bold text-sm mb-1 ";
+        if (currentTool === id) {
+          if (id === 'compose') return base + "bg-sky-50 text-sky-600 shadow-sm border border-sky-100 dark:bg-sky-900/20 dark:text-white dark:border-sky-800";
+          if (id === 'translate') return base + "bg-purple-50 text-purple-600 shadow-sm border border-purple-100 dark:bg-purple-900/20 dark:text-white dark:border-purple-800";
+          if (id === 'humanize') return base + "bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100 dark:bg-emerald-900/20 dark:text-white dark:border-emerald-800";
+          if (id === 'contacts') return base + "bg-orange-50 text-orange-600 shadow-sm border border-orange-100 dark:bg-orange-900/20 dark:text-white dark:border-orange-800";
+        }
+        return base + "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800/50";
+      };
 
-        return (
-          <div className="flex h-screen w-full text-slate-900 dark:text-white selection:bg-brand-100 dark:selection:bg-brand-900 transition-colors duration-300">
-            {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
-            
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 glass flex flex-col transition-transform duration-300 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-              <div className="p-6 flex items-center gap-3 mb-2">
+      // --- RENDER LOGIC ---
+      if (loadingUser) return <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-900"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div></div>;
+      if (!user) return <AuthPage />;
 
-                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 dark:from-sky-400 dark-to-slate-600-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 ring-1 ring-black/5 dark:ring-white/10">
+      // --- MAIN WORKSPACE (Logged In) ---
+      return (
+        <div className="flex h-screen w-full text-slate-900 dark:text-white selection:bg-brand-100 dark:selection:bg-brand-900 transition-colors duration-300">
+          {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
 
+          <aside className={`fixed inset-y-0 left-0 z-50 w-72 glass flex flex-col transition-transform duration-300 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="p-6 flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 dark:from-sky-400 dark:to-slate-600 flex items-center justify-center text-white shadow-lg"><ICONS.Mail className="w-7 h-7" /></div>
+              <div>
+                <h1 className="text-3xl font-bold font-heading tracking-tight text-slate-800 dark:text-white">MailMate</h1>
+                <span className="text-[10px] bg-brand-100 text-brand-700 px-1.5 py-0.5 rounded font-bold">PRO</span></div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden ml-auto text-slate-400"><ICONS.X /></button>
+            </div>
+
+            {/* USER PROFILE & LOGOUT */}
+            <div className="px-6 mb-4">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">{user.displayName ? user.displayName[0].toUpperCase() : "U"}</div>
+                <div className="overflow-hidden"><p className="text-sm font-bold truncate dark:text-slate-200">{user.displayName || "User"}</p><button onClick={handleLogout} className="text-[10px] text-red-500 font-bold hover:underline">Sign Out</button></div>
+              </div>
+            </div>
+
+            <nav className="px-4 space-y-1">
+              <p className="px-2 text-[10px] font-bold uppercase text-slate-400 mb-2 tracking-widest mt-2">Workspace</p>
+              {[{ id: 'compose', icon: ICONS.Mail, label: 'Composer' }, { id: 'translate', icon: ICONS.Translate, label: 'Translator' }, { id: 'humanize', icon: ICONS.Sparkles, label: 'Humanizer' }, { id: 'contacts', icon: ICONS.Users, label: 'Groups' }].map(t => (
+                <button
+                  key={t.id} onClick={() => { setCurrentTool(t.id); setIsMobileMenuOpen(false); }} className={getSidebarClass(t.id)}><t.icon className={`w-5 h-5 ${currentTool === t.id ? '' : 'opacity-70'}`} /> <span>{t.label}</span>
+                </button>
+              ))}
+            </nav>
+            {/* --- SETTINGS BUTTON IN SIDEBAR --- */}
+            <div className="px-4 mt-2 mb-2">
+              <button onClick={() => {
+                setShowSettings(true);
+                setIsMobileMenuOpen(false);
+              }}
+
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 font-bold text-sm bg-pink-50 text-pink-600 shadow-sm border border-pink-100 dark:bg-pink-900/20 dark:text-pink-300 dark:border-pink-800 hover:brightness-95 active:scale-95"
+              >
+                {/* Agar ICONS.Settings nahi hai to Sparkles use kar rahe hain */}
+                <ICONS.Sparkles className="w-5 h-5" />
+                <span>Brand Voice</span>
+              </button>
+            </div>
+            <div className="mt-auto p-4 border-t border-slate-200 dark:border-gray-700/50 bg-slate-50/50 dark:bg-slate-900/30">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Recent History</span><button onClick={() => setHistory([])} className="px-2 py-1 rounded bg-red-50 text-[10px] font-bold uppercase text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 transition-colors">Clear All</button></div>
+              <div className="space-y-1 h-[200px] overflow-y-auto pr-1 custom-scrollbar">{history.length > 0 ? history.map(item => <HistoryItem key={item.id} item={item} onClick={handleHistoryClick} onDelete={deleteHistoryItem} onRename={renameHistoryItem} />) : <p className="text-xs text-center text-slate-400 py-8 bg-slate-100 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200">No history yet</p>}</div>
+            </div>
+          </aside>
+
+          <div className="flex-1 flex flex-col overflow-hidden relative">
+            <div className="absolute inset-0 bg-[#f8fafc] -z-30"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0B1120] via-[#1e1b4b] to-[#0f172a] opacity-0 dark:opacity-100 transition-opacity duration-500 -z-20"></div>
+            <div className="absolute top-0 left-0 w-96 h-96 bg-brand-200/30 dark:bg-indigo-600/10 rounded-full mix-blend-multiply dark:mix-blend-plus-lighter filter blur-[100px] opacity-50 animate-blob"></div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200/30 dark:bg-purple-600/10 rounded-full mix-blend-multiply dark:mix-blend-plus-lighter filter blur-[100px] opacity-50 animate-blob animation-delay-2000"></div>
+
+            <header className="lg:hidden flex items-center justify-between p-4 glass border-b border-gray-200/50 dark:border-gray-700/50 z-20">
+              <div className="flex items-center gap-3">
+                {/* 1. Logo Box (Wahi Purana) */}
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 dark:from-sky-400 dark:to-slate-600 flex items-center justify-center text-white shadow-lg">
                   <ICONS.Mail className="w-7 h-7" />
-
                 </div>
 
-                <div>
-                  <h1 className="text-3xl font-bold font-heading tracking-tight text-slate-800 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-b dark:from-white dark:to-slate-600 drop-shadow-sm">MailMate</h1>
-                  <span className="text-[13px] font-bold font-heading tracking-tight text-slate-800 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-b dark:from-white dark:to-slate-600 drop-shadow-sm">Pro</span>
-               </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden ml-auto text-slate-400"><ICONS.X /></button>
+                {/* 2. Text Column (Naam + PRO Badge) */}
+                <div className="flex flex-col justify-center">
+                  {/* Main Name */}
+                  <span className="font-bold text-xl font-heading tracking-tight text-slate-900 dark:text-white leading-none">
+                    MailMate
+                  </span>
+
+                  {/* PRO Badge (User Requested Style) */}
+                  <span className="text-[10px] bg-brand-100 text-brand-700 dark:bg-sky-900/50 dark:text-sky-300 px-1.5 py-0.5 rounded font-bold w-fit mt-0.5 tracking-wider">
+                    PRO
+                  </span>
+                </div>
               </div>
-              <nav className="px-4 space-y-1">
-                <p className="px-2 text-[10px] font-bold uppercase text-slate-400 mb-2 tracking-widest mt-2">Workspace</p>
-                {[{ id: 'compose', icon: ICONS.Mail, label: 'Composer' }, 
-                { id: 'translate', icon: ICONS.Translate, label: 'Translator' }, 
-                { id: 'humanize', icon: ICONS.Sparkles, label: 'Humanizer' },
-                { id: 'contacts', icon: (p)=><svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, label: 'Groups' }
-              ].map(t => ( 
-                <button key={t.id} onClick={() => { setCurrentTool(t.id); setIsMobileMenuOpen(false); }} className={getSidebarClass(t.id)}>
-                  <t.icon className={`w-5 h-5 ${currentTool === t.id ? '' : 'opacity-70'}`} /> <span>{t.label}</span>
-                  </button> 
-                ))}
-                
-              </nav>
-              <div className="mt-auto p-4 border-t border-slate-200 dark:border-gray-700/50 bg-slate-50/50 dark:bg-slate-900/30">
-                 <div className="flex justify-between items-center mb-3"><span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Recent History</span><button onClick={() => setHistory([])} className="px-2 py-1 rounded bg-red-50 text-[10px] font-bold uppercase text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 transition-colors">Clear All</button></div>
-                 <div className="space-y-1 h-[440px] overflow-y-auto pr-1 custom-scrollbar">{history.length > 0 ? history.map(item => <HistoryItem key={item.id} item={item} onClick={handleHistoryClick} onDelete={deleteHistoryItem} onRename={renameHistoryItem} />) : <p className="text-xs text-center text-slate-400 py-8 bg-slate-100 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200">No history yet</p>}</div>
+              <div className="flex items-center gap-2"><ThemeToggle theme={theme} toggleTheme={toggleTheme} /><button onClick={() => setIsMobileMenuOpen(true)}><ICONS.Menu /></button></div></header>
+
+            <main className="flex-1 overflow-y-auto p-4 sm:p-8 z-10">
+              <div className="hidden lg:flex justify-end mb-4 gap-3">
+                <div className="glass rounded-full p-1 border border-slate-200 dark:border-gray-700">
+                  <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+                </div>
               </div>
-            </aside>
-
-            <div className="flex-1 flex flex-col overflow-hidden relative">
-              <div className="absolute inset-0 bg-[#f8fafc] -z-30"></div>
-              <div className="absolute inset-0 bg-gradient-to-br from-[#0B1120] via-[#1e1b4b] to-[#0f172a] opacity-0 dark:opacity-100 transition-opacity duration-500 -z-20"></div>
-              <div className="absolute top-0 left-0 w-96 h-96 bg-brand-200/30 dark:bg-indigo-600/10 rounded-full mix-blend-multiply dark:mix-blend-plus-lighter filter blur-[100px] opacity-50 animate-blob"></div>
-              <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200/30 dark:bg-purple-600/10 rounded-full mix-blend-multiply dark:mix-blend-plus-lighter filter blur-[100px] opacity-50 animate-blob animation-delay-2000"></div>
-
-              <header className="lg:hidden flex items-center justify-between p-4 glass border-b border-gray-200/50 dark:border-gray-700/50 z-20">
-                <span className="font-bold text-lg font-heading bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">MailMate</span>
-                <div className="flex items-center gap-2"><ThemeToggle theme={theme} toggleTheme={toggleTheme} /><button onClick={() => setIsMobileMenuOpen(true)}><ICONS.Menu /></button></div>
-              </header>
-
-              <main className="flex-1 overflow-y-auto p-4 sm:p-8 z-10">
-                    <div className="hidden lg:flex justify-end mb-4"><div className="glass rounded-full p-1 border border-slate-200 dark:border-gray-700"><ThemeToggle theme={theme} toggleTheme={toggleTheme} /></div></div>
-                    <div className="max-w-7xl mx-auto pb-10">
-                        <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-4 tracking-tight font-heading text-slate-900 dark:text-white drop-shadow-sm">{currentTool === 'compose' ? 'Smart Email Composer' : currentTool === 'translate' ? 'AI Translator' : currentTool === 'humanize' ? 'AI Humanizer' : 'Contact Groups'}</h1>
-                        <FeatureTicker />
-                        
-                        {currentTool === 'compose' && <ToolComposer 
-                          handleQuickExample={(t) => setComposeInput(t)} 
-                          composeInput={composeInput} setComposeInput={setComposeInput} 
-                          isSmartCompose={isSmartCompose} setIsSmartCompose={setIsSmartCompose} 
-                          composeTone={composeTone} setComposeTone={setComposeTone} 
-                          composeLength={composeLength} setComposeLength={setComposeLength} // Pass Length Props
-                          composeOutput={composeOutput} setComposeOutput={setComposeOutput} 
-                          handleCopy={handleCopy} handleDownload={handleDownloadPDF} // Pass new handlers
-                          handleCompose={() => handleToolAction('compose', composeInput, composeTone)} 
-                          isLoading={isLoading} />}
-
-                        {currentTool === 'translate' && <ToolTranslator 
-                          translateFromLang={translateFromLang} setTranslateFromLang={setTranslateFromLang} 
-                          translateToLang={translateToLang} setTranslateToLang={setTranslateToLang} 
-                          translateInput={translateInput} setTranslateInput={setTranslateInput} 
-                          translateOutput={translateOutput} setTranslateOutput={setTranslateOutput} 
-                          handleCopy={handleCopy} handleDownload={handleDownloadPDF} 
-                          handleTranslate={() => handleToolAction('translate', translateInput, null, {from: translateFromLang, to: translateToLang})} 
-                          isLoading={isLoading} />}
-
-                        {currentTool === 'humanize' && <ToolHumanizer 
-                          humanizeTone={humanizeTone} setHumanizeTone={setHumanizeTone} 
-                          humanizeInput={humanizeInput} setHumanizeInput={setHumanizeInput} 
-                          humanizeOutput={humanizeOutput} setHumanizeOutput={setHumanizeOutput} 
-                          handleCopy={handleCopy} handleDownload={handleDownloadPDF} 
-                          handleHumanize={() => handleToolAction('humanize', humanizeInput, humanizeTone)} 
-                          isLoading={isLoading} />}
-                          {/* Existing tools ke neeche... */}
-
-                          {currentTool === 'contacts' && <ToolContacts 
-                          handleCopy={handleCopy} 
-                          isLoading={isLoading} />}
-                    </div>
-              </main>
-            </div>
+              <div className="max-w-7xl mx-auto pb-10">
+              
+                {/* Purana <h1> hata kar ye lagayein */}
+                <h1 className="text-4xl md:text-6xl font-extrabold text-center mb-6 tracking-tight font-heading text-slate-900 dark:text-white drop-shadow-2xl">
+                  {currentTool === 'compose' ? 'Smart Email Composer' : currentTool === 'translate' ? 'AI Translator' : currentTool === 'humanize' ? 'AI Humanizer' : 'Contact Groups'}
+                </h1><FeatureTicker />
+                {currentTool === 'compose' && <ToolComposer handleQuickExample={(t) => setComposeInput(t)} composeInput={composeInput} setComposeInput={setComposeInput} isSmartCompose={isSmartCompose} setIsSmartCompose={setIsSmartCompose} composeTone={composeTone} setComposeTone={setComposeTone} composeLength={composeLength} setComposeLength={setComposeLength} composeOutput={composeOutput} setComposeOutput={setComposeOutput} handleCopy={handleCopy} handleDownload={handleDownloadPDF} handleCompose={(customPrompt) => handleToolAction('compose', customPrompt || composeInput, composeTone)} isLoading={isLoading} />}
+                {currentTool === 'translate' && <ToolTranslator translateFromLang={translateFromLang} setTranslateFromLang={setTranslateFromLang} translateToLang={translateToLang} setTranslateToLang={setTranslateToLang} translateInput={translateInput} setTranslateInput={setTranslateInput} translateOutput={translateOutput} setTranslateOutput={setTranslateOutput} handleCopy={handleCopy} handleDownload={handleDownloadPDF} handleTranslate={() => handleToolAction('translate', translateInput, null, { from: translateFromLang, to: translateToLang })} isLoading={isLoading} />}
+                {currentTool === 'humanize' && <ToolHumanizer humanizeTone={humanizeTone} setHumanizeTone={setHumanizeTone} humanizeInput={humanizeInput} setHumanizeInput={setHumanizeInput} humanizeOutput={humanizeOutput} setHumanizeOutput={setHumanizeOutput} handleCopy={handleCopy} handleDownload={handleDownloadPDF} handleHumanize={() => handleToolAction('humanize', humanizeInput, humanizeTone)} isLoading={isLoading} />}
+                {currentTool === 'contacts' && <ToolContacts handleCopy={handleCopy} isLoading={isLoading} />}
+                <Footer history={history} />
+                {/* ADD KARO MODAL KO */}
+                <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} brandVoice={brandVoice} setBrandVoice={setBrandVoice} />
+              </div>
+            </main>
           </div>
-        );
-      }
+        </div>
+      );
+    }
 
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<App />);
-    </script>
-  </body>
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+
 </html>
