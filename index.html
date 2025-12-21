@@ -1211,7 +1211,7 @@ const AuthPage = () => {
 
             // EmailJS se OTP bhejo
             const templateParams = { to_email: email, to_name: name, otp: otp };
-            emailjs.send('service_4j3gvse', 'template_o8w435b', templateParams)
+            emailjs.send('service_id', 'template_id', templateParams)
                 .then(() => { console.log("Email Sent"); }, (err) => { console.error("Email Error", err); });
 
             // User ko OTP page par le jao
@@ -1750,5 +1750,6 @@ const Footer = ({ history }) => {
     root.render(<App />);
   </script>
 </body>
+
 
 </html>
